@@ -63,8 +63,8 @@ namespace Bomberman.Api
         public IEnumerable<Point> NearEnemies { get; private set; } = new List<Point>();
         public IEnumerable<Point> NearMeatChoppers { get; private set; } = new List<Point>();
 
-        public bool HaveDirectAfkTargetCurrentStep => Global.OtherBombermans.IsTargetAfk && HaveDirectAfkTarget(true);
-        public bool HaveDirectAfkTargetNextStep => Global.OtherBombermans.IsTargetAfk && HaveDirectAfkTarget(false);
+        public bool HaveDirectAfkTargetCurrentStep => Global.OtherBombermans.HaveAfkBombermans && HaveDirectAfkTarget(true);
+        public bool HaveDirectAfkTargetNextStep => Global.OtherBombermans.HaveAfkBombermans && HaveDirectAfkTarget(false);
 
         private bool HaveDirectAfkTarget(bool currentStep = true)
         {
@@ -174,11 +174,30 @@ namespace Bomberman.Api
 
         #region Suicide
 
-        public int SuicidePoints = 0;
-        public bool IsSuicide => SuicidePoints > Config.SuicideBreakpoint;
-        public bool IsForceSuicide => SuicidePoints > Config.ForceSuicideBreakpoint;
-        private string _suicideForcePart => IsForceSuicide ? "FORCE " : string.Empty;
-        public string SuicideMessage => $"!!!!!{_suicideForcePart}SUICIDE!!!!!";
+        private int _suicidePoints = 0;
+        private bool _isSuicide => _suicidePoints > Config.SuicideBreakpoint;
+        private bool _isForceSuicide => _suicidePoints > Config.ForceSuicideBreakpoint;
+        private string _suicideForcePart => _isForceSuicide ? "FORCE " : string.Empty;
+        private string _suicideMessage => $"!!!!!{_suicideForcePart}SUICIDE!!!!!";
+
+        public bool CheckSuicide()
+        {
+            Console.WriteLine("suicide points: " + _suicidePoints);
+
+            if (Global.OtherBombermans.Bombermans.Count == 1 || _suicidePoints > 0)
+            {
+                _suicidePoints++;
+
+                if (_isForceSuicide || (_isSuicide && !Global.OtherBombermans.HaveAfkBombermans))
+                {
+                    Console.WriteLine(_suicideMessage);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         #endregion
 
         #region Bonus
@@ -228,7 +247,7 @@ namespace Bomberman.Api
 
         public void Clear()
         {
-            SuicidePoints = 0;
+            _suicidePoints = 0;
             Bonuses.Clear();
         }
 

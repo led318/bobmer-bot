@@ -8,6 +8,7 @@ namespace Bomberman.Api
 {
     public class OtherBomberman : IHasPoint
     {
+        //public int Id { get; set; }
         public Point Point { get; set; }
         public int AfkPoints { get; set; } = 0;
     }

@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bomb.cs" />
+    <Compile Include="Bombs.cs" />
     <Compile Include="Bonuses\Bonus.cs" />
     <Compile Include="Bonuses\BonusBlast.cs" />
     <Compile Include="Bonuses\BonusCount.cs" />
@@ -66,7 +67,9 @@
     <Compile Include="Infrastructure\Extensions.cs" />
     <Compile Include="Infrastructure\Global.cs" />
     <Compile Include="Infrastructure\Helper.cs" />
+    <Compile Include="Infrastructure\IHasElement.cs" />
     <Compile Include="Infrastructure\IHasPoint.cs" />
+    <Compile Include="Infrastructure\IHasTick.cs" />
     <Compile Include="LengthToXY.cs" />
     <Compile Include="MyBomberman.cs" />
     <Compile Include="NearPoint.cs" />

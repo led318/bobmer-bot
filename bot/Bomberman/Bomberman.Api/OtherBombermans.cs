@@ -8,11 +8,11 @@ namespace Bomberman.Api
     public class OtherBombermans
     {
         private List<OtherBomberman> _afkOtherBombermansStatus = new List<OtherBomberman>();
-        private List<Point> _afkOtherBombermans =>
+        public List<Point> AfkOtherBombermans =>
             _afkOtherBombermansStatus.Where(b => b.AfkPoints >= Config.AfkBreakpoint).Select(b => b.Point).ToList();
 
         public Point Target { get; set; }
-        public bool IsTargetAfk => _afkOtherBombermans.Any();
+        public bool HaveAfkBombermans => AfkOtherBombermans.Any();
         public List<Point> Bombermans { get; set; }
 
         public void Clear()
@@ -20,18 +20,15 @@ namespace Bomberman.Api
             _afkOtherBombermansStatus.Clear();
         }
 
-        public bool InitAndCheckSuicide()
+        public void Init()
         {
             Bombermans = Global.Board.GetOtherBombermans();
 
             CalculateAfk();
 
-            if (CalculateSuicide())
-                return true;
-
-            if (_afkOtherBombermans.Any())
+            if (AfkOtherBombermans.Any())
             {
-                CalculateTargetBomberman(_afkOtherBombermans);
+                CalculateTargetBomberman(AfkOtherBombermans);
                 Console.WriteLine("target: " + Target + " AFK");
             }
             else if (Bombermans.Any())
@@ -39,8 +36,6 @@ namespace Bomberman.Api
                 CalculateTargetBomberman(Bombermans);
                 Console.WriteLine("target: " + Target);
             }
-
-            return false;
         }
 
         private void CalculateAfk()
@@ -62,26 +57,8 @@ namespace Bomberman.Api
                     _afkOtherBombermansStatus = Bombermans.Select(b => new OtherBomberman { Point = b }).ToList();
             }
 
-            Console.WriteLine("afk: " + _afkOtherBombermans.Count);
-        }
-
-        private bool CalculateSuicide()
-        {
-            Console.WriteLine("suicide points: " + Global.Me.SuicidePoints);
-
-            if (Bombermans.Count == 1 || Global.Me.SuicidePoints > 0)
-            {
-                Global.Me.SuicidePoints++;
-
-                if (Global.Me.IsForceSuicide || (Global.Me.IsSuicide && !_afkOtherBombermans.Any()))
-                {
-                    Console.WriteLine(Global.Me.SuicideMessage);                    
-                    return true;
-                }
-            }
-
-            return false;
-        }
+            Console.WriteLine("afk: " + AfkOtherBombermans.Count);
+        }        
 
         private void CalculateTargetBomberman(List<Point> bombermans)
         {

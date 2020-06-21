@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 
 namespace Bomberman.Api
 {
-    public class Bomb : IHasPoint
+    public class Bomb : IHasPoint, IHasTick, IHasElement
     {
         public Point Point { get; set; }
         public Element Element { get; set; }
         public int Power { get; set; }
-
+        public int Timer { get; set; }
+        public bool IsKamikadze { get; set; } //todo
+        public bool IsRC { get; set; } //todo
+        public bool IsBlastNextTick => Timer == 1;
+        
+        [Obsolete]
         public bool IsRc => Element == Constants.RC_BOMB_ELEMENT;
         public bool IsNew => Element == Element.BOMB_BOMBERMAN;
 
@@ -26,6 +31,11 @@ namespace Bomberman.Api
         public void Init()
         {
             Element = Global.Board.GetAt(Point);
+        }
+
+        public void Tick()
+        {
+            Timer--;
         }
     }
 }
