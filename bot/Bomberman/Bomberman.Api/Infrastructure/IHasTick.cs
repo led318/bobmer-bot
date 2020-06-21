@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Bomberman.Api
+namespace Bomberman.Api.Infrastructure
 {
-    public class OtherBomberman : Bomberman
+    public interface IHasTick
     {
-        public int AfkPoints { get; set; } = 0;
+        void Tick();
     }
 }

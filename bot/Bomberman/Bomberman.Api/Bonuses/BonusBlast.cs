@@ -7,14 +7,24 @@ using System.Threading.Tasks;
 
 namespace Bomberman.Api
 {
-    public class BonusBlast : BonusByTick
+    public class BonusBlast : Bonus
     {
-        public override bool IsDisabled => TicksLeft < Config.BonusBlastDisableTimeout;
+        public override Element Element => Element.BOMB_BLAST_RADIUS_INCREASE;
 
-        public BonusBlast()
+        public override bool IsActive => DurationValue > 0;
+        public override bool IsActiveNextTick => DurationValue > 1;
+
+        public int NextTickEffect => IsActiveNextTick ? EffectValue : 0;
+
+        public override void Add()
         {
-            Element = Element.BOMB_BLAST_RADIUS_INCREASE;
-            TicksLeft = Config.BonusBlastTimeout;
+            EffectValue += Config.BonusBlastEffect;
+            DurationValue += Config.BonusBlastDuration;
+        }
+
+        public override void Utilize()
+        {
+            DurationValue--;
         }
     }
 }
