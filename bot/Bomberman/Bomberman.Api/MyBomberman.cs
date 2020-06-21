@@ -6,22 +6,18 @@ using Bomberman.Api.Infrastructure;
 
 namespace Bomberman.Api
 {
-    public class MyBomberman : IHasPoint
+    public class MyBomberman : Bomberman, IHasPoint
     {
-        public int MyBombsPower => Config.BombsDefaultPower + Config.BonusBlastIncrease * BonusBlastMultiplier;
-        public int MyBombsForSearchPower => Config.BombsDefaultPower + Config.BonusBlastIncrease * BonusBlastForSearchMultiplier;
-        public int MaxBombsCount => Config.BombsDefaultCount + Config.BonusCountIncrease * BonusCountMultiplier;
-
-
-        public Point Point { get; set; }
-
+        public int MyBombsPower => Config.BombsDefaultPower + BonusBlast.Effect;
+        public int MyBombsForSearchPower => Config.BombsDefaultPower + BonusBlast.NextTickEffect;
+        public int MaxBombsCount => Config.BombsDefaultCount + BonusCount.Effect;
 
 
         #region Destroyable Walls
         public int DestroyableWallsNearCount => GetPointDestroyableWalls(Point).Count();
         public bool HaveDestroyableWallsNear => DestroyableWallsNearCount > 0;
 
-        public int DestroyableWallsNextStepCount => PreviousMove != null ? GetPointDestroyableWalls(PreviousMove.Point).Count() : 0;
+        public int DestroyableWallsNextStepCount => PreviousStep != null ? GetPointDestroyableWalls(PreviousStep.Point).Count() : 0;
         public bool HaveDestroyableWallsNextStep => DestroyableWallsNextStepCount > 0;
 
         public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsNearCount == 1
@@ -72,10 +68,10 @@ namespace Bomberman.Api
             var searchPoint = Global.OtherBombermans.Target;
             var blastSize = currentStep ? MyBombsForSearchPower : MyBombsForSearchPower;
 
-            if (!currentStep && PreviousMove == null)
+            if (!currentStep && PreviousStep == null)
                 return false;
 
-            var startPoint = currentStep ? Point : PreviousMove.Point;
+            var startPoint = currentStep ? Point : PreviousStep.Point;
 
             CheckDirectAfkTarget(result, startPoint, searchPoint, blastSize, p => p.ShiftTop());
             CheckDirectAfkTarget(result, startPoint, searchPoint, blastSize, p => p.ShiftRight());
@@ -110,28 +106,15 @@ namespace Bomberman.Api
         #endregion
 
         #region Move
-        private NearPoint _previousMove;
-        public NearPoint PreviousMove
+        private NearPoint _previousStep;
+        public NearPoint PreviousStep
         {
-            get { return _previousMove; }
+            get { return _previousStep; }
             set
             {
-                _previousMove = value;
+                _previousStep = value;
 
-                if (_previousMove != null)
-                {
-                    if (_previousMove.IsBonusRC)
-                        Bonuses.Add(new BonusRC());
-
-                    if (_previousMove.IsBonusBlast)
-                        Bonuses.Add(new BonusBlast());
-
-                    if (_previousMove.IsBonusImmune)
-                        Bonuses.Add(new BonusImmune());
-
-                    if (_previousMove.IsBonusCount)
-                        Bonuses.Add(new BonusCount());
-                }
+                ProcessBonuses(_previousStep);
             }
         }
         #endregion 
@@ -168,7 +151,7 @@ namespace Bomberman.Api
                 : new List<Point>();
         }        
 
-        private bool IsMeOnMyFirstRCBombBlast => PreviousMove != null && MyFirstRCBombFutureBlasts.Contains(PreviousMove.Point);
+        private bool IsMeOnMyFirstRCBombBlast => PreviousStep != null && MyFirstRCBombFutureBlasts.Contains(PreviousStep.Point);
 
         #endregion
 
@@ -201,76 +184,25 @@ namespace Bomberman.Api
         #endregion
 
         #region Bonus
-        //public bool IsBonusRC => IsBonusType(Element.BOMB_REMOTE_CONTROL); //wrong logic
+
         public bool CanUseRC => IsMyBombRC && !IsMeOnMyFirstRCBombBlast;
-        private List<BonusRC> BonusesRC => Bonuses.Select(b => b as BonusRC).Where(b => b != null).OrderBy(b => b.UsesLeft).ToList();
         public void UseRC()
         {
             Console.WriteLine("ACHTUNG!!! USE RC!!!!!!");
 
-            var rcBonusToUse = BonusesRC.FirstOrDefault();
-            if (rcBonusToUse != null)
-                rcBonusToUse.Use();
+            BonusRC.Utilize();
         }
-
-        private bool IsBonusBlast => IsBonusType(Element.BOMB_BLAST_RADIUS_INCREASE);
-        private int BonusBlastMultiplier => GetBonusTypeCount(Element.BOMB_BLAST_RADIUS_INCREASE);
-        private int BonusBlastForSearchMultiplier => GetBonuses(Element.BOMB_BLAST_RADIUS_INCREASE).Count(b => !((BonusByTick)b).IsDisabled);
-        private int BonusBlastNextStepMultiplier => GetBonuses(Element.BOMB_BLAST_RADIUS_INCREASE).Count(b => b.IsActiveNextStep);
-
-        public bool IsBonusImmune => IsBonusType(Element.BOMB_IMMUNE);
-
-        private bool IsBonusCount => IsBonusType(Element.BOMB_COUNT_INCREASE);
-        private int BonusCountMultiplier => GetBonusTypeCount(Element.BOMB_COUNT_INCREASE);
-
-        private List<Bonus> Bonuses = new List<Bonus>();
-        private List<BonusByTick> BonusesByTick => Bonuses.Select(b => b as BonusByTick).Where(b => b != null).ToList();
-
-        private bool IsBonusType(Element element)
-        {
-            return GetBonusTypeCount(element) > 0;
-        }
-
-        private int GetBonusTypeCount(Element element)
-        {
-            return Bonuses.Count(b => b.Element == element);
-        }
-
-        private List<Bonus> GetBonuses(Element element)
-        {
-            return Bonuses.Where(b => b.Element == element).ToList();
-        }
-
-
 
         #endregion
 
         public void Clear()
         {
             _suicidePoints = 0;
-            Bonuses.Clear();
+            ClearBonuses();
         }
 
         public void Tick()
         {
-            var groupedTickBonuses = BonusesByTick.GroupBy(b => b.Element);
-            foreach (var group in groupedTickBonuses)
-            {
-                var groupItems = group.OrderBy(b => b.TicksLeft).ToList();
-
-                var index = 0;
-                foreach (var bonusByTick in BonusesByTick)
-                {
-                    if (bonusByTick.AreTicksConcatenated && index > 0)
-                        continue;
-
-                    bonusByTick.Tick();
-                    index++;
-                }
-            }
-
-            Bonuses = Bonuses.Where(b => b.IsActive).ToList();
-
             if (_bombPlaceTimeout > 0)
                 _bombPlaceTimeout--;
         }
@@ -280,7 +212,7 @@ namespace Bomberman.Api
             Console.WriteLine("bomb place timeout: " + _bombPlaceTimeout);
             Console.WriteLine("bomb power: " + MyBombsPower);
             Console.WriteLine("bombs max count: " + MaxBombsCount);
-            Console.WriteLine("immune: " + IsBonusImmune);
+            Console.WriteLine("immune: " + BonusImmune.IsActive);
             Console.WriteLine("rc: " + IsMyBombRC);
             Console.WriteLine("direct afk: " + HaveDirectAfkTarget(false));
             //Console.WriteLine("my bomb rc: " + IsMyBombRC);

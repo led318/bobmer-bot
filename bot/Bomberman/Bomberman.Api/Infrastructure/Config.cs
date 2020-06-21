@@ -27,6 +27,8 @@ namespace Bomberman.Api.Infrastructure
         [AutoPopulateConfig]
         public static bool ManualSuicide;
         [AutoPopulateConfig]
+        public static bool IsSuicideEnabled;
+        [AutoPopulateConfig]
         public static readonly int SuicideBreakpoint;
         [AutoPopulateConfig]
         public static readonly int ForceSuicideBonus;
@@ -39,20 +41,21 @@ namespace Bomberman.Api.Infrastructure
         public static readonly int BombsDefaultCount;
         [AutoPopulateConfig]
         public static readonly int BombsDefaultPower;
+
         [AutoPopulateConfig]
-        public static readonly int BonusBlastIncrease;
+        public static readonly int BonusBlastEffect;
         [AutoPopulateConfig]
-        public static readonly int BonusBlastTimeout; // actually 10 but set to 15 to handle 10+ steps when bomb was placed near 10
+        public static readonly int BonusBlastDuration; // actually 10 but set to 15 to handle 10+ steps when bomb was placed near 10
         [AutoPopulateConfig]
-        public static readonly int BonusBlastDisableTimeout; // actually 10 but set to 15 to handle 10+ steps when bomb was placed near 10
+        public static readonly int BonusBlastDisableDuration; // actually 10 but set to 15 to handle 10+ steps when bomb was placed near 10
         [AutoPopulateConfig]
-        public static readonly int BonusCountIncrease;
+        public static readonly int BonusCountEffect;
         [AutoPopulateConfig]
-        public static readonly int BonusCountTimeout; // actually 10 but set to 11 not to lose first step
+        public static readonly int BonusCountDuration; // actually 10 but set to 11 not to lose first step
         [AutoPopulateConfig]
-        public static readonly int BonusImmuneTimeout; // actually 10 but set to 9 to begin escaping earlier
+        public static readonly int BonusImmuneDuration; // actually 10 but set to 9 to begin escaping earlier
         [AutoPopulateConfig]
-        public static readonly int BonusRCCount; // actually 3 but exist issues when last bomb is stack
+        public static readonly int BonusRCEffect; // actually 3 but exist issues when last bomb is stack
         [AutoPopulateConfig]
         public static readonly int AfkBreakpoint;
         [AutoPopulateConfig]
@@ -68,6 +71,9 @@ namespace Bomberman.Api.Infrastructure
         public static readonly int DangerRatingHigh;
         [AutoPopulateConfig]
         public static readonly int DangerRatingCritical;
+
+        [AutoPopulateConfig]
+        public static readonly int RoundLength;
 
         static Config()
         {

@@ -57,10 +57,10 @@ namespace Bomberman.Api
                 if (IsBomb)
                     result += Config.DangerRatingCritical;
 
-                if (!Global.Me.IsBonusImmune && IsFutureBlast)
+                if (!Global.Me.BonusImmune.IsActive && IsFutureBlast)
                     result += Config.DangerRatingMiddle;
 
-                if (!Global.Me.IsBonusImmune && IsFutureBlastNextStep)
+                if (!Global.Me.BonusImmune.IsActive && IsFutureBlastNextStep)
                     result += Config.DangerRatingCritical;
 
                 if (IsNearChopper)
@@ -90,7 +90,7 @@ namespace Bomberman.Api
                     if (NextNearPoint.IsChopper)
                         result += Config.DangerRatingMiddle;
 
-                    if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlastNextStep)
+                    if (!Global.Me.BonusImmune.IsActive && NextNearPoint.IsFutureBlastNextStep)
                         result += Config.DangerRatingMiddle;
 
                     if (NextNearPoint.IsOtherBombBomberman)

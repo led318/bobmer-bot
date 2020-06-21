@@ -194,7 +194,7 @@ namespace Demo
         private void SetCurrentDirection(NearPoint nearPoint = null)
         {
             _currentDirection = nearPoint?.Direction ?? Direction.Stop;
-            Global.Me.PreviousMove = nearPoint;
+            Global.Me.PreviousStep = nearPoint;
         }
 
         private void WriteStopLog()

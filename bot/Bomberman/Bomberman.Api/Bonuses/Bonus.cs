@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bomberman.Api.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,15 +7,35 @@ using System.Threading.Tasks;
 
 namespace Bomberman.Api
 {
-    public abstract class Bonus
+    public abstract class Bonus : IHasTick
     {
-        public Element Element { get; protected set; }
+        public abstract Element Element { get; }
 
         public abstract bool IsActive { get; }
-        public abstract bool IsActiveNextStep { get; }
+        public abstract bool IsActiveNextTick { get; }
 
-        //public abstract void Activate();
-        public virtual void Tick() { }
-        public virtual void Use() { }
+        public int Effect => IsActive ? EffectValue : 0;
+        public int Duration => IsActive ? DurationValue : 0;
+
+        protected int EffectValue { get; set; }
+        protected int DurationValue { get; set; }
+
+        public Bonus()
+        {
+        }
+
+        public abstract void Add();
+        public abstract void Utilize();
+
+        public virtual void Clear()
+        {
+            EffectValue = 0;
+            DurationValue = 0;
+        }
+
+        public virtual void Tick()
+        {
+            Utilize();
+        }
     }
 }
