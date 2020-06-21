@@ -40,6 +40,7 @@ namespace Demo
             Global.Me = new MyBomberman();
             Global.NearPoints = new NearPoints();
             Global.OtherBombermans = new OtherBombermans();
+            Global.Bombs = new Bombs();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -59,6 +60,7 @@ namespace Demo
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             Process(board);
+            Global.RoundTick++;
             sw.Stop();
             Console.WriteLine($"elapsed: {sw.ElapsedMilliseconds}ms");
 
@@ -76,13 +78,16 @@ namespace Demo
                 _currentMoves.Add(Direction.Stop);
                 Global.OtherBombermans.Clear();
                 Config.ManualSuicide = false;
+                Global.RoundTick = 0;
             }
             else
             {
+                Console.WriteLine("round tick: " + Global.RoundTick);
                 Global.Me.Tick();
                 Global.Me.Point = Global.Board.GetBomberman();
+                Global.OtherBombermans.Init();
 
-                if (Global.OtherBombermans.InitAndCheckSuicide())
+                if (Global.Me.CheckSuicide())
                 {
                     _currentMoves.Add(Direction.Stop);
                     _currentMoves.Add(Direction.Act);

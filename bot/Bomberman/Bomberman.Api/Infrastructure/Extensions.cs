@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bomberman.Api.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,28 @@ namespace Bomberman.Api
         public static List<Point> GetPoints(this IEnumerable<IHasPoint> array)
         {
             return array.Select(x => x.Point).ToList();
+        }
+
+        public static bool ContainsPoint(this IEnumerable<IHasPoint> array, IHasPoint hasPoint)
+        {
+            return array.ContainsPoint(hasPoint.Point);
+        }
+
+        public static bool ContainsPoint(this IEnumerable<IHasPoint> array, Point point)
+        {
+            return array.Any(x => x.Equals(point));
+        }
+
+        public static void ForEach<T>(this IEnumerable<T> array, Action<T> func)
+        {
+            foreach (var item in array)
+                func(item);
+        }
+
+        public static void Tick(this IEnumerable<IHasTick> array)
+        {
+            foreach (var item in array)
+                item.Tick();
         }
     }
 }
