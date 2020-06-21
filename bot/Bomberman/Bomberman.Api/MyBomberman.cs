@@ -2,11 +2,12 @@
 using System.Runtime.InteropServices;
 using System;
 using System.Linq;
+using Bomberman.Api.Enums;
 using Bomberman.Api.Infrastructure;
 
 namespace Bomberman.Api
 {
-    public class MyBomberman : Bomberman, IHasPoint
+    public class MyBomberman : Bomberman
     {
         public int MyBombsPower => Config.BombsDefaultPower + BonusBlast.Effect;
         public int MyBombsForSearchPower => Config.BombsDefaultPower + BonusBlast.NextTickEffect;

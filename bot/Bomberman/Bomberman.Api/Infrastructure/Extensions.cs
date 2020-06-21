@@ -29,6 +29,14 @@ namespace Bomberman.Api
             return array.Any(x => x.Equals(point));
         }
 
+        public static void RemovePoint<T>(this ICollection<T> list, Point point)
+            where T: IHasPoint
+        {
+            var itemToRemove = list.FirstOrDefault(x => x.Point.Equals(point));
+            if (itemToRemove != null)
+                list.Remove(itemToRemove);
+        }
+
         public static void ForEach<T>(this IEnumerable<T> array, Action<T> func)
         {
             foreach (var item in array)

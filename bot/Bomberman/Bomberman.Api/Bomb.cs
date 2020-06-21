@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bomberman.Api.Enums;
 
 namespace Bomberman.Api
 {
-    public class Bomb : IHasPoint, IHasTick, IHasElement
+    public class Bomb : HasPoint, IHasTick, IHasElement
     {
-        public Point Point { get; set; }
         public Element Element { get; set; }
         public int Power { get; set; }
         public int Timer { get; set; }

@@ -1,11 +1,7 @@
-﻿using Bomberman.Api.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Bomberman.Api.Enums;
+using Bomberman.Api.Infrastructure;
 
-namespace Bomberman.Api
+namespace Bomberman.Api.Bonuses
 {
     public abstract class Bonus : IHasTick
     {

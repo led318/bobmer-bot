@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bomberman.Api.Enums;
 using Bomberman.Api.Infrastructure;
 
 namespace Bomberman.Api
 {
-    public class NearPoint : IHasPoint
+    public class NearPoint : HasPoint
     {
 
         public Direction Direction { get; set; }
-        public Point Point { get; set; }
         public Element Element { get; set; }
 
         public NearPoint NextNearPoint { get; set; }

@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-namespace Bomberman.Api
+namespace Bomberman.Api.Enums
 {
     public enum Element : short
     {
@@ -107,7 +107,7 @@ namespace Bomberman.Api
         /// <summary>
         /// Walls ruins. This is how broken wall looks like, it will dissapear on next move.
         /// </summary>
-        DestroyedWall = (short)'H',        
+        DESTROYED_WALL = (short)'H',        
 
         /// <summary>
         /// Meat chopper. This guys runs over the board randomly and gets in the way all the time. If it will touch bomberman - bomberman dies.
@@ -117,12 +117,12 @@ namespace Bomberman.Api
         /// <summary>
         /// Dead meat chopper. score point for killing.
         /// </summary>
-        DeadMeatChopper = (short)'x',     
+        DEAD_MEAT_CHOPPER = (short)'x',     
 
         /// <summary>
         /// Empty space on a map. This is the only place where you can move your Bomberman
         /// </summary>
-        Space = (short)' ',
+        SPACE = (short)' ',
 
         ///<summary>
         /// Bomb blast radius increase. Applicable only to new bombs. The perk is temporary.

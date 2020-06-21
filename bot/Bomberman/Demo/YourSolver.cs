@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Bomberman.Api.Enums;
 using Newtonsoft.Json;
 using Bomberman.Api.Infrastructure;
 
@@ -41,6 +42,8 @@ namespace Demo
             Global.NearPoints = new NearPoints();
             Global.OtherBombermans = new OtherBombermans();
             Global.Bombs = new Bombs();
+            Global.Choppers = new Choppers();
+            Global.RoundBoards = new List<Board>();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -60,7 +63,6 @@ namespace Demo
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             Process(board);
-            Global.RoundTick++;
             sw.Stop();
             Console.WriteLine($"elapsed: {sw.ElapsedMilliseconds}ms");
 
@@ -70,27 +72,38 @@ namespace Demo
         private void Process(Board board)
         {
             _currentMoves.Clear();
-            Global.Board = board;
+            Global.RoundBoards.Add(board);
+            Global.RoundTick = Global.RoundBoards.Count - 1;
 
-            if (Global.Board.isMyBombermanDead)
+            if (board.isMyBombermanDead)
             {
+                //Global.RoundTick = 0;
+                Global.RoundBoards.Clear();
+
                 Global.Me.Clear();
                 _currentMoves.Add(Direction.Stop);
                 Global.OtherBombermans.Clear();
                 Config.ManualSuicide = false;
-                Global.RoundTick = 0;
             }
             else
             {
+                /*
+                if (Global.RoundTick % 20 == 0)
+                    Global.Choppers.WriteChopperLogs();
+                */
+
                 Console.WriteLine("round tick: " + Global.RoundTick);
                 Global.Me.Tick();
                 Global.Me.Point = Global.Board.GetBomberman();
+
+                Global.Choppers.Init();
                 Global.OtherBombermans.Init();
 
                 if (Global.Me.CheckSuicide())
                 {
                     _currentMoves.Add(Direction.Stop);
                     _currentMoves.Add(Direction.Act);
+                    //Global.RoundTick++;
                     return;
                 }
 
@@ -125,6 +138,7 @@ namespace Demo
                 }
 
                 _currentMoves.Add(_currentDirection);
+                // Global.RoundTick++;
             }
         }
 

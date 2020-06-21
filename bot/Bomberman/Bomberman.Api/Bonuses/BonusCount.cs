@@ -1,18 +1,14 @@
-﻿using Bomberman.Api.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Bomberman.Api.Enums;
+using Bomberman.Api.Infrastructure;
 
-namespace Bomberman.Api
+namespace Bomberman.Api.Bonuses
 {
     public class BonusCount: Bonus
     {
         public override Element Element => Element.BOMB_COUNT_INCREASE;
 
-        public override bool IsActive => DurationValue > 0;
-        public override bool IsActiveNextTick => DurationValue > 1;
+        public override bool IsActive => DurationValue > 0 && EffectValue > 0;
+        public override bool IsActiveNextTick => DurationValue > 1 && EffectValue > 1;
 
         public BonusCount()
         {
@@ -28,6 +24,7 @@ namespace Bomberman.Api
         public override void Utilize()
         {
             DurationValue--;
+            EffectValue--;
         }
     }
 }

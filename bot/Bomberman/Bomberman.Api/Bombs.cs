@@ -13,6 +13,7 @@ namespace Bomberman.Api
 
         public void Init()
         {
+            
             AllBombs.Tick();
 
             var bombPoints = Global.Board.GetBombs();
@@ -26,7 +27,7 @@ namespace Bomberman.Api
             }
 
             AllBombs.AddRange(newBombs);
-
+            
         }
 
     }

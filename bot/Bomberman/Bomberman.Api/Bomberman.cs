@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bomberman.Api.Bonuses;
 
 namespace Bomberman.Api
 {
-    public class Bomberman : IHasPoint
+    public class Bomberman : HasPoint
     {
-        public Point Point { get; set; }
-
         public BonusBlast BonusBlast { get; private set; } = new BonusBlast();
         public BonusCount BonusCount { get; private set; } = new BonusCount();
         public BonusImmune BonusImmune { get; private set; } = new BonusImmune();

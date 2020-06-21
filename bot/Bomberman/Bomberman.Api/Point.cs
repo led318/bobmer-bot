@@ -20,6 +20,7 @@
  * #L%
  */
 using System;
+using Bomberman.Api.Enums;
 
 namespace Bomberman.Api
 {

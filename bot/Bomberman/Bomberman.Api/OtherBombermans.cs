@@ -26,6 +26,10 @@ namespace Bomberman.Api
 
             CalculateAfk();
 
+            //CalculateTargetBomberman(Global.Choppers.AllChoppers.GetPoints());
+            //Console.WriteLine("target: " + Target + " CHOPPER");
+
+            
             if (AfkOtherBombermans.Any())
             {
                 CalculateTargetBomberman(AfkOtherBombermans);

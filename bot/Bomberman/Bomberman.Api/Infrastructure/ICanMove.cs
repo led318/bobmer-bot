@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Bomberman.Api.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Bomberman.Api.Enums;
 
 namespace Bomberman.Api.Infrastructure
 {
-    public interface IHasElement
+    public interface ICanMove
     {
-        Element Element { get; set; }
+        MovePosition MovePosition { get; }
     }
 }

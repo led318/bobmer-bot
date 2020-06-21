@@ -1,4 +1,6 @@
-﻿namespace Bomberman.Api
+﻿using Bomberman.Api.Enums;
+
+namespace Bomberman.Api
 {
     public static class Constants
     {
@@ -27,7 +29,7 @@
         };
 
         public static readonly Element[] MOVABLE_ELEMENTS = new[] {
-            Element.Space,
+            Element.SPACE,
             Element.BOMB_BLAST_RADIUS_INCREASE,
             Element.BOMB_COUNT_INCREASE,
             Element.BOMB_IMMUNE,
