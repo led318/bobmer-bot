@@ -7,14 +7,26 @@ using System.Threading.Tasks;
 
 namespace Bomberman.Api
 {
-    public class BonusImmune: BonusByTick
+    public class BonusImmune: Bonus
     {
-        public override bool AreTicksConcatenated => true; 
+        public override Element Element => Element.BOMB_IMMUNE;
+
+        public override bool IsActive => DurationValue > 0;
+        public override bool IsActiveNextTick => DurationValue > 1;
 
         public BonusImmune()
         {
-            Element = Element.BOMB_IMMUNE;
-            TicksLeft = Config.BonusImmuneTimeout;
+            Add();
+        }
+
+        public override void Add()
+        {
+            DurationValue = Config.BonusImmuneDuration;
+        }
+
+        public override void Utilize()
+        {
+            DurationValue--;
         }
     }
 }
