@@ -19,6 +19,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+using Bomberman.Api.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -151,7 +152,9 @@ namespace Bomberman.Api
                     //Just print current state (gameBoard) to console
                     Console.Clear();
                     Console.SetCursorPosition(0, 0);
-                    //Console.WriteLine(board.ToString());
+
+                    if(Config.PrintBoard)
+                        Console.WriteLine(board.ToString());
 
                     var action = Get(board);
 

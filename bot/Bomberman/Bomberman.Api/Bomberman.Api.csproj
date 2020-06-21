@@ -59,6 +59,7 @@
     <Compile Include="Bonuses\BonusCount.cs" />
     <Compile Include="Bonuses\BonusImmune.cs" />
     <Compile Include="Bonuses\BonusRC.cs" />
+    <Compile Include="Infrastructure\AutoPopulateConfigAttribute.cs" />
     <Compile Include="Infrastructure\Config.cs" />
     <Compile Include="Infrastructure\Constants.cs" />
     <Compile Include="Element.cs" />

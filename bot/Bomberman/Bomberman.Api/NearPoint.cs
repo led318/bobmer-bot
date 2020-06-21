@@ -46,72 +46,66 @@ namespace Bomberman.Api
                 var result = 0;
 
                 if (IsWall)
-                    result += 10;
+                    result += Config.DangerRatingCritical;
 
                 if (IsDestroyableWall)
-                    result += 10;
+                    result += Config.DangerRatingCritical;
 
                 if (!IsEmpty)
-                    result++;
-
-                //if (!Global.Me.IsBonusImmune && IsBlast)
-                //    result += 2;
+                    result += Config.DangerRatingLow;
 
                 if (IsBomb)
-                    result += 10;
+                    result += Config.DangerRatingCritical;
 
                 if (!Global.Me.IsBonusImmune && IsFutureBlast)
-                    result += 2;
+                    result += Config.DangerRatingMiddle;
 
                 if (!Global.Me.IsBonusImmune && IsFutureBlastNextStep)
-                    result += 10;
+                    result += Config.DangerRatingCritical;
 
                 if (IsNearChopper)
-                    result += 3;
+                    result += Config.DangerRatingHigh;
 
                 if (IsChopper)
-                    result += 10;
+                    result += Config.DangerRatingCritical;
 
                 if (IsOtherBomberman)
-                    result += 10;
-
-                //if (IsBonusRC)
-                //    result += 10; //temp
+                    result += Config.DangerRatingCritical;
 
                 if (IsBonus)
-                    result -= 2;
+                    result -= Config.DangerRatingMiddle;
 
 
                 if (NextNearPoint != null)
                 {
                     if (!NextNearPoint.IsEmpty)
-                        result++;
+                        result += Config.DangerRatingLow;
 
                     if (NextNearPoint.IsBomb)
-                        result += 2;
+                        result += Config.DangerRatingMiddle;
 
                     if (NextNearPoint.IsNearChopper)
-                        result++;
+                        result += Config.DangerRatingLow;
 
                     if (NextNearPoint.IsChopper)
-                        result += 2;
+                        result += Config.DangerRatingMiddle;
 
                     if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlastNextStep)
-                        result += 2;
+                        result += Config.DangerRatingMiddle;
 
                     if (NextNearPoint.IsOtherBombBomberman)
-                        result += 10;
+                        result += Config.DangerRatingCritical;
 
                     if (NextNearPoint.IsBonus)
-                        result--;
+                        result -= Config.DangerRatingLow;
 
                     if (IsActCurrentMove && (NextNearPoint.IsWall || NextNearPoint.IsDestroyableWall || NextNearPoint.IsBomb))
-                        result += 10;
+                        result += Config.DangerRatingCritical;
 
                     if (NextNearPoint.NextNearPoint != null)
                     {
                         if (IsActCurrentMove && (NextNearPoint.NextNearPoint.IsWall || NextNearPoint.NextNearPoint.IsDestroyableWall || NextNearPoint.NextNearPoint.IsBomb))
-                            result += 4;
+                            result += Config.DangerRatingHigh;
                     }
                 }
 

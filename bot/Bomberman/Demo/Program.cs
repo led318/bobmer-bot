@@ -22,6 +22,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Configuration;
+using Bomberman.Api.Infrastructure;
 
 namespace Demo
 {
@@ -34,23 +35,26 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            var isLocal = false;
-            var isFile = false;
+            //var isLocal = true;
+            //var isFile = false;
 
-            var serverUrl = ConfigurationSettings.AppSettings["connectionString"];
+            //var serverUrl = ConfigurationSettings.AppSettings["connectionString"];
+            var serverUrl = Config.ConnectionString;
 
-            if (isLocal)
+            if (Config.IsLocal)
             {
-                Console.SetWindowSize(Console.LargestWindowWidth - 50, Console.LargestWindowHeight - 3);
+                if (Config.PrintBoard)
+                    Console.SetWindowSize(Console.LargestWindowWidth - 50, Console.LargestWindowHeight - 3);
+
                 Console.OutputEncoding = System.Text.Encoding.UTF8;
                 Console.BackgroundColor = ConsoleColor.White;
                 Console.ForegroundColor = ConsoleColor.Black;
 
-                serverUrl = ConfigurationSettings.AppSettings["connectionStringLocal"];
+                serverUrl = Config.ConnectionStringLocal;
             }
 
             // creating custom AI client
-            var bot = new YourSolver(serverUrl, isFile);
+            var bot = new YourSolver(serverUrl, Config.IsFile);
 
             // starting thread with playing game
             Task.Run(bot.Play);
@@ -69,7 +73,7 @@ namespace Demo
                 var key = Console.ReadKey();
 
                 if (key.Key == ConsoleKey.S)
-                    Bomberman.Api.Infrastructure.Config.ManualSuicide = true;
+                    Config.ManualSuicide = true;
                 else
                     return;
             }
