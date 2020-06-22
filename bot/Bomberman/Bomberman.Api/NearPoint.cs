@@ -25,7 +25,11 @@ namespace Bomberman.Api
         public bool IsBlast => Element == Element.BOOM;
         public bool IsWall => Element == Element.WALL;
         public bool IsDestroyableWall => Element == Element.DESTROYABLE_WALL;
+
         public bool IsChopper => Element == Element.MEAT_CHOPPER;
+        public bool IsBombChopper => IsChopper && Global.HasPrevBoard && Global.PrevBoard.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS);
+
+        public bool IsZombieChopper => Element == Element.DeadMeatChopper;
         public bool IsOtherBomberman => Constants.OTHER_BOMBERMANS_ELEMENTS.Contains(Element);
         public bool IsOtherBombBomberman => Element == Element.OTHER_BOMB_BOMBERMAN;
 
@@ -57,6 +61,12 @@ namespace Bomberman.Api
                 if (IsBomb)
                     result += Config.DangerRatingCritical;
 
+                if (IsZombieChopper)
+                {
+                    result += Config.DangerRatingCritical;
+                    Console.WriteLine("ZOMBIE!!! next");
+                }
+
                 if (!Global.Me.IsBonusImmune && IsFutureBlast)
                     result += Config.DangerRatingMiddle;
 
@@ -73,7 +83,7 @@ namespace Bomberman.Api
                     result += Config.DangerRatingCritical;
 
                 if (IsBonus)
-                    result -= Config.DangerRatingMiddle;
+                    result -= Config.DangerRatingHigh;
 
 
                 if (NextNearPoint != null)
@@ -96,16 +106,40 @@ namespace Bomberman.Api
                     if (NextNearPoint.IsOtherBombBomberman)
                         result += Config.DangerRatingCritical;
 
-                    if (NextNearPoint.IsBonus)
-                        result -= Config.DangerRatingLow;
+                    if (NextNearPoint.IsZombieChopper)
+                    {
+                        result += Config.DangerRatingHigh;
+                        Console.WriteLine("ZOMBIE!!! +1");
+                    }
 
-                    if (IsActCurrentMove && (NextNearPoint.IsWall || NextNearPoint.IsDestroyableWall || NextNearPoint.IsBomb))
+                    if (NextNearPoint.IsBonus)
+                        result -= Config.DangerRatingMiddle;
+
+                    if (IsActCurrentMove && (NextNearPoint.IsWall 
+                                             || NextNearPoint.IsDestroyableWall 
+                                             || NextNearPoint.IsBomb 
+                                             || NextNearPoint.IsOtherBomberman
+                                             || NextNearPoint.IsOtherBombBomberman
+                                             || NextNearPoint.IsBombChopper))
                         result += Config.DangerRatingCritical;
 
                     if (NextNearPoint.NextNearPoint != null)
                     {
-                        if (IsActCurrentMove && (NextNearPoint.NextNearPoint.IsWall || NextNearPoint.NextNearPoint.IsDestroyableWall || NextNearPoint.NextNearPoint.IsBomb))
+                        if (IsActCurrentMove && (NextNearPoint.NextNearPoint.IsWall 
+                                                 || NextNearPoint.NextNearPoint.IsDestroyableWall 
+                                                 || NextNearPoint.NextNearPoint.IsBomb
+                                                 || NextNearPoint.NextNearPoint.IsOtherBombBomberman
+                                                 || NextNearPoint.NextNearPoint.IsBombChopper))
                             result += Config.DangerRatingHigh;
+
+                        if (NextNearPoint.NextNearPoint.IsBonus)
+                            result -= Config.DangerRatingLow;
+
+                        if (NextNearPoint.NextNearPoint.IsZombieChopper)
+                        {
+                            result += Config.DangerRatingHigh;
+                            Console.WriteLine("ZOMBIE!!! +2");
+                        }
                     }
                 }
 
@@ -125,7 +159,8 @@ namespace Bomberman.Api
 
             IsFutureBlast = Global.Board.GetFutureBlasts().Any(b => b.Equals(Point));
             IsFutureBlastNextStep = Global.Board.GetFutureBlasts(true).Any(b => b.Equals(Point));
-            IsBomb = Global.Board.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS);
+
+            IsBomb = Global.Board.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS) || IsBombChopper;
             IsNearChopper = Global.Board.IsNearChopper(Point);
 
             if (nestLevel < Config.NearNestLevel)

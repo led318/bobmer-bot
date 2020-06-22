@@ -260,6 +260,25 @@ namespace Bomberman.Api
                     .ToList();
             }
 
+            if (Global.HasPrevBoard)
+            {
+                var meatChoppers = Get(Element.MEAT_CHOPPER);
+                var bombMeatChoppers = new List<Point>();
+
+                if (onlyNextStep)
+                {
+                    bombMeatChoppers = meatChoppers
+                        .Where(x => Global.PrevBoard.IsAt(x, Element.BOMB_TIMER_2)).ToList();
+                }
+                else
+                {
+                    bombMeatChoppers = meatChoppers
+                        .Where(x => Global.PrevBoard.IsAnyOfAt(x, Constants.BOMB_ELEMENTS)).ToList();
+                }
+
+                result.AddRange(bombMeatChoppers);
+            }
+
             return result
                 .OrderBy(a => a.X)
                 .ThenBy(a => a.Y)

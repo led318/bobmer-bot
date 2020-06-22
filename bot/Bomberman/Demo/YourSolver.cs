@@ -68,6 +68,7 @@ namespace Demo
         private void Process(Board board)
         {
             _currentMoves.Clear();
+            Global.PrevBoard = Global.Board;
             Global.Board = board;
 
             if (Global.Board.isMyBombermanDead)
@@ -111,7 +112,10 @@ namespace Demo
                     {
                         Console.WriteLine("skip act current move, next move afk target");
                     }
-                    else
+                    else if (Global.Me.HaveDirectBonus())
+                    {
+                        Console.WriteLine("skip act current move, to not produce zombie");
+                    } else 
                     {
                         _currentMoves.Add(Direction.Act);
                         Global.Me.SetMyBomb();
