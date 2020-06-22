@@ -25,7 +25,8 @@ namespace Bomberman.Api
 
         public void Init()
         {
-            Element = Global.Board.GetAt(Point);
+            if (Global.Board != null)
+                Element = Global.Board.GetAt(Point);
         }
     }
 }

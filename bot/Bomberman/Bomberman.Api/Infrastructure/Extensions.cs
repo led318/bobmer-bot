@@ -17,5 +17,13 @@ namespace Bomberman.Api
         {
             return array.Select(x => x.Point).ToList();
         }
+
+        public static void RemovePoint<T>(this ICollection<T> list, Point point)
+            where T : IHasPoint
+        {
+            var itemToRemove = list.FirstOrDefault(x => x.Point.Equals(point));
+            if (itemToRemove != null)
+                list.Remove(itemToRemove);
+        }
     }
 }

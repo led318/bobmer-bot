@@ -9,5 +9,9 @@
         public static MyBomberman Me { get; set; }
         public static NearPoints NearPoints { get; set; }
         public static OtherBombermans OtherBombermans { get; set; }
+        public static Choppers Choppers { get; set; }
+
+        public static bool HasManualMove => !string.IsNullOrEmpty(ManualMove);
+        public static string ManualMove { get; set; }
     }
 }

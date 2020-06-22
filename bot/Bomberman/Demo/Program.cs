@@ -57,7 +57,8 @@ namespace Demo
             var bot = new YourSolver(serverUrl, Config.IsFile);
 
             // starting thread with playing game
-            Task.Run(bot.Play);
+            //Task.Run(bot.Play);
+            bot.Play();
 
             // waiting for any key
             ReadKey();
@@ -72,10 +73,7 @@ namespace Demo
                 // waiting for any key
                 var key = Console.ReadKey();
 
-                if (key.Key == ConsoleKey.S)
-                    Config.ManualSuicide = true;
-                else
-                    return;
+                Global.ManualMove = key.KeyChar.ToString();
             }
         }
     }

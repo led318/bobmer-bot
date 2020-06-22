@@ -163,13 +163,15 @@ namespace Bomberman.Api
 
                     ((WebSocket)sender).Send(action);
 
+                    /*
                     if (Console.KeyAvailable)
                     {
                         var key = Console.ReadKey();
 
                         if (key.Key == ConsoleKey.S)
-                            Infrastructure.Config.ManualSuicide = true;
+                            Global.ManualMove = "s";
                     }
+                    */
 
                     /*
                     var key = Console.ReadKey();

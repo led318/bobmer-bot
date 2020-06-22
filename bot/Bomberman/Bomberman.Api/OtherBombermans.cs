@@ -12,7 +12,7 @@ namespace Bomberman.Api
             _afkOtherBombermansStatus.Where(b => b.AfkPoints >= Config.AfkBreakpoint).Select(b => b.Point).ToList();
 
         public Point Target { get; set; }
-        public bool IsTargetAfk => _afkOtherBombermans.Any();
+        public bool IsTargetAfk => Config.IsLocal || _afkOtherBombermans.Any();
         public List<Point> Bombermans { get; set; }
 
         public void Clear()

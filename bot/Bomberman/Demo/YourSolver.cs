@@ -40,6 +40,7 @@ namespace Demo
             Global.Me = new MyBomberman();
             Global.NearPoints = new NearPoints();
             Global.OtherBombermans = new OtherBombermans();
+            Global.Choppers = new Choppers();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -65,11 +66,36 @@ namespace Demo
             return string.Join(",", _currentMoves);
         }
 
+        private Direction GetManualMove()
+        {
+            switch (Global.ManualMove)
+            {
+                case "w":
+                    return Direction.Up;
+                case "d":
+                    return Direction.Right;
+                case "s":
+                    return Direction.Down;
+                case "a":
+                    return Direction.Left;
+                case "f":
+                    return Direction.Act;
+            }
+
+            return Direction.Stop;
+        }
+
         private void Process(Board board)
         {
             _currentMoves.Clear();
             Global.PrevBoard = Global.Board;
             Global.Board = board;
+
+            if (Global.HasManualMove)
+            {
+                Console.WriteLine($"manual move: '{Global.ManualMove}'");
+                _currentMoves.Add(GetManualMove());
+            }
 
             if (Global.Board.isMyBombermanDead)
             {
@@ -83,7 +109,9 @@ namespace Demo
                 Global.Me.Tick();
                 Global.Me.Point = Global.Board.GetBomberman();
 
-                if (Global.OtherBombermans.InitAndCheckSuicide())
+                Global.Choppers.Init();
+
+                if (Global.OtherBombermans.InitAndCheckSuicide() && !Global.HasManualMove)
                 {
                     _currentMoves.Add(Direction.Stop);
                     _currentMoves.Add(Direction.Act);
@@ -104,11 +132,15 @@ namespace Demo
 
                 if (_isActCurrentMove)
                 {
-                    if (!Global.Me.NearEnemies.Any() && Global.Me.HaveMoreDestroyableWallsNextStep)
+                    if (!Global.Me.HaveDirectAfkTargetCurrentStep 
+                            && !Global.Me.NearEnemies.Any() 
+                            && Global.Me.HaveMoreDestroyableWallsNextStep)
                     {
                         Console.WriteLine("skip act current move, next move more walls");
                     }
-                    else if (!Global.Me.NearMeatChoppers.Any() && Global.Me.HaveDirectAfkTargetNextStep && !Global.Me.HaveDirectAfkTargetCurrentStep)
+                    else if (!Global.Me.HaveDirectAfkTargetCurrentStep
+                        && !Global.Me.NearMeatChoppers.Any() 
+                        && Global.Me.HaveDirectAfkTargetNextStep)
                     {
                         Console.WriteLine("skip act current move, next move afk target");
                     }
@@ -117,14 +149,23 @@ namespace Demo
                         Console.WriteLine("skip act current move, to not produce zombie");
                     } else 
                     {
-                        _currentMoves.Add(Direction.Act);
-                        Global.Me.SetMyBomb();
-                        Console.WriteLine("ACT CURRENT MOVE!!!!!!");
+                        if (!Global.HasManualMove)
+                        {
+                            _currentMoves.Add(Direction.Act);
+                            Global.Me.SetMyBomb();
+                            Console.WriteLine("ACT CURRENT MOVE!!!!!!");
+                        }
                     }
                 }
 
-                _currentMoves.Add(_currentDirection);
+                if (!Global.HasManualMove)
+                {
+                    _currentMoves.Add(_currentDirection);
+                }
             }
+
+            if (Global.HasManualMove)
+                Global.ManualMove = string.Empty;
         }
 
         private void WriteToLog(string str)
@@ -151,7 +192,7 @@ namespace Demo
 
             if (Global.Me.CanPlaceBombs)
             {
-                if (Global.Me.NearEnemies.Any() || Global.Me.HaveDestroyableWallsNear)
+                if (Global.Me.HaveDirectAfkTargetCurrentStep || Global.Me.NearEnemies.Any() || Global.Me.HaveDestroyableWallsNear)
                 {
                     ActCurrentMove();
                 }

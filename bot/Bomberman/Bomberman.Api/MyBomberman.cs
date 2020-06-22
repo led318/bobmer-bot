@@ -105,6 +105,7 @@ namespace Bomberman.Api
         {
             NearEnemies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ENEMIES_ELEMENTS);
             NearMeatChoppers = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Element.MEAT_CHOPPER);
+
         }
 
         #endregion
@@ -321,7 +322,8 @@ namespace Bomberman.Api
             Console.WriteLine($"bombs max count: {MaxBombsCount}, {BonusCountDuration}s");
             Console.WriteLine($"immune: {IsBonusImmune}, {BonusImmuneDuration}s");
             Console.WriteLine($"rc: {IsMyBombRC}");
-            Console.WriteLine("direct afk: " + HaveDirectAfkTarget(false));
+            Console.WriteLine("direct afk this step: " + HaveDirectAfkTarget(true));
+            Console.WriteLine("direct afk next step: " + HaveDirectAfkTarget(false));
             //Console.WriteLine("my bomb rc: " + IsMyBombRC);
             //Console.WriteLine("my bombs" + Newtonsoft.Json.JsonConvert.SerializeObject(MyBombs));
             //Console.WriteLine("destroyable walls: " + DestroyableWallsNearCount);
