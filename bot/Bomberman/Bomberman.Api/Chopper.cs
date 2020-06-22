@@ -15,7 +15,7 @@ namespace Bomberman.Api
         public List<MovePosition> MoveHistory { get; private set; } = new List<MovePosition>();
 
         private List<Point> _nextTickPoints { get; set; } = new List<Point>();
-        public List<BoardPoint> BoardPoints { get; private set; } = new List<BoardPoint>();
+        //public List<BoardPoint> BoardPoints { get; private set; } = new List<BoardPoint>();
 
         private readonly Element[] CanNotMoveThrought = new Element[]
         {
@@ -109,15 +109,21 @@ namespace Bomberman.Api
 
         public void InitBoardPoints()
         {
-            BoardPoints.Clear();
+            //BoardPoints.Clear();
 
             var coefficients = new List<Tuple<int, int>>();
-            var result = new List<BoardPoint>();
+            //var result = new List<BoardPoint>();
 
             if (IsUnknownPossibleDirection)
             {
                 for (var i = 0; i < _nextTickPoints.Count; i++)
                 {
+                    var point = _nextTickPoints[i];
+                    if (Global.Board.IsAnyOfAt(point, CanNotMoveThrought))
+                    {
+                        continue;
+                    }
+
                     coefficients.Add(new Tuple<int, int>(i, _nextTickMaxPossibility));
                 }
             }
@@ -126,7 +132,6 @@ namespace Bomberman.Api
                 for (int i = 0; i < _nextTickPoints.Count; i++)
                 {
                     var point = _nextTickPoints[i];
-
                     if (Global.Board.IsAnyOfAt(point, CanNotMoveThrought))
                     {
                         continue;
@@ -142,17 +147,15 @@ namespace Bomberman.Api
             {
                 var point = _nextTickPoints[coefficient.Item1];
 
-                var boardPoint = new BoardPoint(point)
-                {
-                    ChopperPossibility = coefficient.Item2 * 100 / coefficientsSum
-                };
+                var chopperPossibility = coefficient.Item2 * 100 / coefficientsSum;
+                Global.BoardState.GetBoardPoint(point).ChopperPossibility = chopperPossibility;
 
-                result.Add(boardPoint);
+                //result.Add(boardPoint);
             }
 
-            BoardPoints.AddRange(result);
+            //BoardPoints.AddRange(result);
 
-            Console.WriteLine(string.Join(" | ", BoardPoints.Select(x => x.Point + " " + x.ChopperPossibility)));
+            //Console.WriteLine(string.Join(" | ", BoardPoints.Select(x => x.Point + " " + x.ChopperPossibility)));
             //return result;
         }
 

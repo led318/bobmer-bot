@@ -19,7 +19,9 @@ namespace Bomberman.Api
         
         [Obsolete]
         public bool IsRc => Element == Constants.RC_BOMB_ELEMENT;
+
         public bool IsNew => Element == Element.BOMB_BOMBERMAN;
+        public bool IsChopperHidden => Element == Element.MEAT_CHOPPER;
 
         public Bomb(Point point, bool isMyBomb = false)
         {
@@ -27,6 +29,8 @@ namespace Bomberman.Api
             Power = isMyBomb ? Global.Me.MyBombsPower : Config.BombsDefaultPower;
             Init();
         }
+
+
 
         public void Init()
         {

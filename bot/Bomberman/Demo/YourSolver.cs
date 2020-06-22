@@ -44,6 +44,7 @@ namespace Demo
             Global.Bombs = new Bombs();
             Global.Choppers = new Choppers();
             Global.RoundBoards = new List<Board>();
+            Global.BoardState = new BoardState();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -91,6 +92,10 @@ namespace Demo
                 if (Global.RoundTick % 20 == 0)
                     Global.Choppers.WriteChopperLogs();
                 */
+
+                Global.BoardState.Init();
+               // Global.BoardState.PrintToConsole();
+                Global.Bombs.Init();
 
                 Console.WriteLine("round tick: " + Global.RoundTick);
                 Global.Me.Tick();

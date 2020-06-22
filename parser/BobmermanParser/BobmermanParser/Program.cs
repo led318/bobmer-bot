@@ -12,16 +12,16 @@ namespace BobmermanParser
     {
         static string url = $"https://botchallenge.cloud.epam.com/codenjoy-balancer/rest/score/day/2020-06-{DateTime.Now.Date.Day}";
 
-        //static string jsonPath = $"c:/temp/bomberman/a-stat-{DateTime.Now.ToShortDateString().Replace('/', '_')}.txt";
-        static string jsonPath = $"c:/temp/bomberman/a-stat-6_19_2020.txt";
+        static string jsonPath = $"c:/temp/bomberman/a-stat-{DateTime.Now.ToShortDateString().Replace('/', '_')}.txt";
+        //static string jsonPath = $"c:/temp/bomberman/a-stat-6_19_2020.txt";
         static string myCsvPath = $"c:/temp/bomberman/a-stat-my-{DateTime.Now.ToShortDateString().Replace('/', '_')}.csv";
         static string myShortCsvPath = $"c:/temp/bomberman/a.csv";
         static string myId = "y2xvmwbn1tkpur93x38n";
 
         static void Main(string[] args)
         {
-            var onlyGenerateCsv = true;
-            var getNewData = false;
+            var onlyGenerateCsv = false;
+            var getNewData = true;
 
             while (true)
             {

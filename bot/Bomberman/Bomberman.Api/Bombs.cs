@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bomberman.Api.Enums;
 
 namespace Bomberman.Api
 {
@@ -14,20 +15,30 @@ namespace Bomberman.Api
         public void Init()
         {
             
-            AllBombs.Tick();
+            //AllBombs.Tick();
 
+            //blasted bombs
+            var blastedBombs = AllBombs.Where(x => Global.Board.IsAt(x.Point, Element.BOOM)).ToList();
+            AllBombs.RemoveAll(x => blastedBombs.ContainsPoint(x));
+            //end
+
+            //new bombs
             var bombPoints = Global.Board.GetBombs();
-
-            var newBombPoints = bombPoints.Where(b => !AllBombs.ContainsPoint(b));
+            var newBombPoints = bombPoints.Where(b => !AllBombs.ContainsPoint(b)).ToList();
             var newBombs = new List<Bomb>();
 
             foreach (var newBombPoint in newBombPoints)
             {
-                
+                var bomb = new Bomb(newBombPoint);
+                newBombs.Add(bomb);
             }
 
             AllBombs.AddRange(newBombs);
-            
+            //end
+
+            AllBombs.ForEach(x => x.Init());
+
+            Console.WriteLine("bombs: " + AllBombs.Count);
         }
 
     }

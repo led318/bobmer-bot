@@ -23,6 +23,9 @@ namespace Bomberman.Api.Infrastructure
         public static readonly bool PrintBoard;
 
         [AutoPopulateConfig]
+        public static readonly int BoardSize;
+
+        [AutoPopulateConfig]
         public static readonly int NearNestLevel;
         [AutoPopulateConfig]
         public static bool ManualSuicide;

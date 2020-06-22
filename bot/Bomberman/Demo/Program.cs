@@ -41,15 +41,15 @@ namespace Demo
             //var serverUrl = ConfigurationSettings.AppSettings["connectionString"];
             var serverUrl = Config.ConnectionString;
 
+            //if (Config.PrintBoard)
+                Console.SetWindowSize(Console.LargestWindowWidth - 50, Console.LargestWindowHeight - 3);
+
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            //Console.BackgroundColor = ConsoleColor.White;
+            //Console.ForegroundColor = ConsoleColor.Black;
+
             if (Config.IsLocal)
             {
-                if (Config.PrintBoard)
-                    Console.SetWindowSize(Console.LargestWindowWidth - 50, Console.LargestWindowHeight - 3);
-
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
-                Console.BackgroundColor = ConsoleColor.White;
-                Console.ForegroundColor = ConsoleColor.Black;
-
                 serverUrl = Config.ConnectionStringLocal;
             }
 
