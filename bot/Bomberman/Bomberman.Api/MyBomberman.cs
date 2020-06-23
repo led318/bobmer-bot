@@ -143,6 +143,7 @@ namespace Bomberman.Api
 
         #region MyBombs
         public List<Bomb> MyBombs { get; private set; } = new List<Bomb>();
+        public List<Bomb> MyRCBombs => MyBombs.Where(x => x.IsRc).ToList();
 
         public List<Point> MyFutureBlasts { get; private set; } = new List<Point>();
         public List<Point> MyFirstRCBombFutureBlasts { get; private set; } = new List<Point>();
