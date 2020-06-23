@@ -2,6 +2,8 @@
 {
     public static class Global
     {
+        public static int RoundTickIndex { get; set; }
+
         public static Board Board { get; set; }
         public static Board PrevBoard { get; set; }
         public static bool HasPrevBoard => PrevBoard != null;

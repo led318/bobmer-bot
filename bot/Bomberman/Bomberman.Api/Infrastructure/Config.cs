@@ -63,7 +63,7 @@ namespace Bomberman.Api.Infrastructure
         [AutoPopulateConfig]
         public static readonly int DangerRatingLow;
         [AutoPopulateConfig]
-        public static readonly int DangerRatingMiddle;
+        public static readonly int DangerRatingMedium;
         [AutoPopulateConfig]
         public static readonly int DangerRatingHigh;
         [AutoPopulateConfig]

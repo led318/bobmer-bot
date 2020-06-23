@@ -62,12 +62,12 @@ namespace Bomberman.Api
                     _afkOtherBombermansStatus = Bombermans.Select(b => new OtherBomberman { Point = b }).ToList();
             }
 
-            Console.WriteLine("afk: " + _afkOtherBombermans.Count);
+            //Console.WriteLine("afk: " + _afkOtherBombermans.Count);
         }
 
         private bool CalculateSuicide()
         {
-            Console.WriteLine("suicide points: " + Global.Me.SuicidePoints);
+            //Console.WriteLine("suicide points: " + Global.Me.SuicidePoints);
 
             if (Bombermans.Count == 1 || Global.Me.SuicidePoints > 0)
             {

@@ -60,6 +60,7 @@ namespace Demo
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             Process(board);
+            Global.RoundTickIndex++;
             sw.Stop();
             Console.WriteLine($"elapsed: {sw.ElapsedMilliseconds}ms");
 
@@ -87,6 +88,8 @@ namespace Demo
 
         private void Process(Board board)
         {
+            Console.WriteLine($"tick index: {Global.RoundTickIndex}");
+
             _currentMoves.Clear();
             Global.PrevBoard = Global.Board;
             Global.Board = board;
@@ -103,6 +106,8 @@ namespace Demo
                 _currentMoves.Add(Direction.Stop);
                 Global.OtherBombermans.Clear();
                 Config.ManualSuicide = false;
+
+                Global.RoundTickIndex = 0;
             }
             else
             {

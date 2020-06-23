@@ -9,6 +9,15 @@ namespace Bomberman.Api
 {
     public class NearPoint : IHasPoint
     {
+        private Dictionary<Direction, List<Direction>> _sideDirections = new Dictionary<Direction, List<Direction>>()
+        { 
+            {Direction.Up, new List<Direction> {Direction.Left, Direction.Right}},
+            {Direction.Down, new List<Direction> {Direction.Left, Direction.Right}},
+            {Direction.Right, new List<Direction> {Direction.Up, Direction.Down}},
+            {Direction.Left, new List<Direction> {Direction.Up, Direction.Down}}
+        };
+
+        private List<Point> _sidePoints = new List<Point>();
 
         public Direction Direction { get; set; }
         public Point Point { get; set; }
@@ -19,6 +28,9 @@ namespace Bomberman.Api
         public bool IsEmpty => Constants.MOVABLE_ELEMENTS.Contains(Element);
         public bool IsFutureBlast { get; set; }
         public bool IsFutureBlastNextStep { get; set; }
+
+        private int _bonusBombPower => Config.BombsDefaultPower + Config.BonusBlastIncrease;
+        public bool IsBonusFutureBlastNextStep { get; set; }
         public bool IsBomb { get; set; }
 
         #region Near Chopper
@@ -41,9 +53,9 @@ namespace Bomberman.Api
                 return isNextNearPoint ? Config.DangerRatingHigh : Config.DangerRatingCritical;
 
             if (possibility > 20)
-                return isNextNearPoint ? Config.DangerRatingMiddle : Config.DangerRatingHigh;
+                return isNextNearPoint ? Config.DangerRatingMedium : Config.DangerRatingHigh;
 
-            return isNextNearPoint ? Config.DangerRatingLow : Config.DangerRatingMiddle;
+            return isNextNearPoint ? Config.DangerRatingLow : Config.DangerRatingMedium;
         }
 
         #endregion
@@ -94,10 +106,13 @@ namespace Bomberman.Api
                 }
 
                 if (!Global.Me.IsBonusImmune && IsFutureBlast)
-                    result += Config.DangerRatingMiddle;
+                    result += Config.DangerRatingMedium;
 
                 if (!Global.Me.IsBonusImmune && IsFutureBlastNextStep)
                     result += Config.DangerRatingCritical;
+
+                if (!Global.Me.IsBonusImmune && IsBonusFutureBlastNextStep)
+                    result += Config.DangerRatingMedium;
 
                 if (IsNearChopper)
                     result += GetNearChopperDangerPoints();
@@ -109,8 +124,10 @@ namespace Bomberman.Api
                     result += Config.DangerRatingCritical;
 
                 if (IsBonus)
-                    result -= (Config.DangerRatingHigh + Config.DangerRatingMiddle);
+                    result -= (Config.DangerRatingHigh + Config.DangerRatingMedium);
 
+                if (IsActCurrentMove && HasSideToEscape())
+                    result -= Config.DangerRatingHigh;
 
                 if (NextNearPoint != null)
                 {
@@ -118,16 +135,16 @@ namespace Bomberman.Api
                         result += Config.DangerRatingLow;
 
                     if (NextNearPoint.IsBomb)
-                        result += Config.DangerRatingMiddle;
+                        result += Config.DangerRatingMedium;
 
                     if (NextNearPoint.IsNearChopper)
                         result += GetNearChopperDangerPoints(true);
 
                     if (NextNearPoint.IsChopper)
-                        result += Config.DangerRatingMiddle;
+                        result += Config.DangerRatingMedium;
 
                     if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlastNextStep)
-                        result += Config.DangerRatingMiddle;
+                        result += Config.DangerRatingMedium;
 
                     if (NextNearPoint.IsOtherBombBomberman)
                         result += Config.DangerRatingCritical;
@@ -139,7 +156,10 @@ namespace Bomberman.Api
                     }
 
                     if (NextNearPoint.IsBonus)
-                        result -= Config.DangerRatingMiddle;
+                        result -= Config.DangerRatingMedium;
+
+                    if (IsActCurrentMove && NextNearPoint.HasSideToEscape())
+                        result -= Config.DangerRatingHigh;
 
                     if (IsActCurrentMove && (NextNearPoint.IsWall
                                              || NextNearPoint.IsDestroyableWall
@@ -158,6 +178,9 @@ namespace Bomberman.Api
                                                  || NextNearPoint.NextNearPoint.IsBombChopper))
                             result += Config.DangerRatingHigh;
 
+                        if (IsActCurrentMove && NextNearPoint.NextNearPoint.HasSideToEscape())
+                            result -= Config.DangerRatingHigh;
+
                         if (NextNearPoint.NextNearPoint.IsBonus)
                             result -= Config.DangerRatingLow;
 
@@ -173,6 +196,11 @@ namespace Bomberman.Api
             }
         }
 
+        private bool HasSideToEscape()
+        {
+            return _sidePoints.Any(x => Global.Board.IsAnyOfAt(x, Constants.MOVABLE_ELEMENTS));
+        }
+
         public NearPoint(Direction direction)
         {
             Direction = direction;
@@ -185,10 +213,13 @@ namespace Bomberman.Api
 
             IsFutureBlast = Global.Board.GetFutureBlasts().Any(b => b.Equals(Point));
             IsFutureBlastNextStep = Global.Board.GetFutureBlasts(true).Any(b => b.Equals(Point));
+            IsBonusFutureBlastNextStep = Global.Board.GetFutureBlasts(true, _bonusBombPower).Any(b => b.Equals(Point));
 
             IsBomb = Global.Board.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS) || IsBombChopper;
             //IsNearChopper = Global.Board.IsNearChopper(Point);
             NearChopper = Global.Choppers.Get(Point);
+
+            InitSidePoints();
 
             if (nestLevel < Config.NearNestLevel)
             {
@@ -197,6 +228,36 @@ namespace Bomberman.Api
             }
         }
 
+        private void InitSidePoints()
+        {
+            _sidePoints.Clear();
+            var sideDirections = _sideDirections[Direction];
+            foreach (var sideDirection in sideDirections)
+            {
+                var sidePoint = new Point();
+
+                switch (sideDirection)
+                {
+                    case Direction.Up:
+                        sidePoint = Point.ShiftTop();
+                        break;
+
+                    case Direction.Right:
+                        sidePoint = Point.ShiftRight();
+                        break;
+
+                    case Direction.Down:
+                        sidePoint = Point.ShiftBottom();
+                        break;
+
+                    case Direction.Left:
+                        sidePoint = Point.ShiftLeft();
+                        break;
+                }
+
+                _sidePoints.Add(sidePoint);
+            }
+        }
 
 
         public void InitAct(bool isActCurrentMove)

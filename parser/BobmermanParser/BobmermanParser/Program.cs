@@ -16,13 +16,13 @@ namespace BobmermanParser
         //static string jsonPath = $"c:/temp/bomberman/a-stat-6_19_2020.txt";
         static string myCsvPath = $"c:/temp/bomberman/a-stat-my-{DateTime.Now.ToShortDateString().Replace('/', '_')}.csv";
         static string myShortCsvPath = $"c:/temp/bomberman/a.csv";
-        //static string myId = "y2xvmwbn1tkpur93x38n";
-        private static string myId = "uzeem6y5o57fwix75qum";
+        static string myId = "y2xvmwbn1tkpur93x38n";
+        //private static string myId = "uzeem6y5o57fwix75qum";
 
         static void Main(string[] args)
         {
-            var onlyGenerateCsv = true;
-            var getNewData = false;
+            var onlyGenerateCsv = false;
+            var getNewData = true;
 
             while (true)
             {
@@ -84,7 +84,7 @@ namespace BobmermanParser
                     var top1 = orderedDict[1][0].Id;
                     var top2 = orderedDict[2][0].Id;
 
-                    streamWriter.Write(GenerateScoresLine(jsonDict, myId, top0, top1, top2));
+                    //streamWriter.Write(GenerateScoresLine(jsonDict, myId, top0, top1, top2));
                 }
 
                 Console.WriteLine($"{DateTime.Now.ToLongTimeString()} processed");
@@ -109,7 +109,7 @@ namespace BobmermanParser
 
             for (var i = 0; i < scores.Count; i++)
             {
-                /*
+                
                 if (i % breakpoint == 0)
                 {
                     tempScores[0] = scores[i].Score;
@@ -128,13 +128,14 @@ namespace BobmermanParser
                 
 
                 jsonStr += $"{scores[i]}\t{diffScores[0]}\t{scores0}\t{diffScores[1]}\t{scores1[i]}\t{diffScores[2]}\t{scores2[i]}\t{diffScores[3]}\r\n";
-                */
                 
+                
+                /*
                 if (i % breakpoint == 0)
                 {
                     jsonStr += $"{scores[i]}\t{scores0[i]}\t{scores1[i]}\t{scores2[i]}\r\n";
                 }
-                
+                */
             }
 
             return jsonStr;

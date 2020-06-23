@@ -216,7 +216,7 @@ namespace Bomberman.Api
         public int BonusImmuneDuration => GetBonusMaxDuration(Element.BOMB_IMMUNE);
 
         private bool IsBonusCount => IsBonusType(Element.BOMB_COUNT_INCREASE);
-        private int BonusCountMultiplier => GetBonusTypeCount(Element.BOMB_COUNT_INCREASE);
+        private int BonusCountMultiplier => GetBonusTypeCount(Element.BOMB_COUNT_INCREASE) > 0 ? 1 :0;
         private int BonusCountDuration => GetBonusMaxDuration(Element.BOMB_COUNT_INCREASE);
 
         private List<Bonus> Bonuses = new List<Bonus>();
@@ -317,11 +317,12 @@ namespace Bomberman.Api
 
         public void PrintStatus()
         {
-            Console.WriteLine($"bomb place timeout: {_bombPlaceTimeout}");
+            //Console.WriteLine($"bomb place timeout: {_bombPlaceTimeout}");
             Console.WriteLine($"bomb power: {MyBombsPower}, +{BonusBlastMultiplier}, {BonusBlastDuration}s");
             Console.WriteLine($"bombs max count: {MaxBombsCount}, {BonusCountDuration}s");
             Console.WriteLine($"immune: {IsBonusImmune}, {BonusImmuneDuration}s");
             Console.WriteLine($"rc: {IsMyBombRC}");
+            Console.WriteLine($"is on my first rc: {IsMeOnMyFirstRCBombBlast}");
             Console.WriteLine("direct afk this step: " + HaveDirectAfkTarget(true));
             Console.WriteLine("direct afk next step: " + HaveDirectAfkTarget(false));
             //Console.WriteLine("my bomb rc: " + IsMyBombRC);
