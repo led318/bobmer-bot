@@ -15,6 +15,8 @@ namespace Bomberman.Api
             new NearPoint(Direction.Left)
         };
 
+        
+
         public bool OnlyCriticalDangerPoints => Points.All(x => x.IsCriticalDanger);
 
         public void InitActNearPoints(bool isActCurrentMove)
@@ -27,6 +29,16 @@ namespace Bomberman.Api
         {
             var minRating = Points.Min(x => x.Rating);
             return Points.Where(x => x.Rating == minRating).ToList();
+        }
+
+        public IEnumerable<NearPoint> GetNonCriticalPoints()
+        {
+            return Points.Where(x => !x.IsCriticalDanger).ToList();
+        }
+
+        public NearPoint GetNonCriticalPoint(int x, int y)
+        {
+            return GetNonCriticalPoints().FirstOrDefault(p => p.Point.X == x && p.Point.Y == y); ;
         }
 
         public void Init()
@@ -52,6 +64,26 @@ namespace Bomberman.Api
 +----------------------+";
 
             return str;
+        }
+
+        public List<NearPoint> GetAllNearPointsRecursively()
+        {
+            var result = new List<NearPoint>();
+
+            foreach (var nearPoint in Points)
+            {
+                ProcessGetNearPointRecirsively(result, nearPoint);
+            }
+
+            return result;
+        }
+
+        private void ProcessGetNearPointRecirsively(List<NearPoint> result, NearPoint nearPoint)
+        {
+            result.Add(nearPoint);
+
+            if (nearPoint.NextNearPoint != null)
+                ProcessGetNearPointRecirsively(result, nearPoint.NextNearPoint);
         }
     }
 }

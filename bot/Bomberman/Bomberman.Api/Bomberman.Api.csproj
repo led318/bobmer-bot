@@ -53,6 +53,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AStar\AStarGrid.cs" />
+    <Compile Include="AStar\MyPathNode.cs" />
+    <Compile Include="AStar\MySolver.cs" />
+    <Compile Include="AStar\PriorityQueue.cs" />
+    <Compile Include="AStar\SpatialAStar.cs" />
     <Compile Include="BoardPoint.cs" />
     <Compile Include="Bomb.cs" />
     <Compile Include="Bonuses\Bonus.cs" />
@@ -89,6 +94,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

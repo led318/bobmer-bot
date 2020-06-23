@@ -207,6 +207,14 @@ namespace Bomberman.Api
             return Get(topLeft, bottomRight, elements);
         }
 
+        public List<Point> Get(Point point, int size, List<Point> points)
+        {
+            var topLeft = point.ShiftLeft(size).ShiftTop(size);
+            var bottomRight = point.ShiftRight(size).ShiftBottom(size);
+
+            return Get(topLeft, bottomRight, points);
+        }
+
         public List<Point> Get(Point topLeft, Point bottomRight, params Element[] elements)
         {
             List<Point> result = new List<Point>();
@@ -218,6 +226,12 @@ namespace Bomberman.Api
 
             }
 
+            return Get(topLeft, bottomRight, result);
+        }
+
+        public List<Point> Get(Point topLeft, Point bottomRight, List<Point> points)
+        {
+            var result = points;
             result = result.Where(a => a.X >= topLeft.X && a.Y <= topLeft.Y).ToList();
 
             result = result.Where(a => a.X <= bottomRight.X && a.Y >= bottomRight.Y).ToList();

@@ -1,8 +1,14 @@
-﻿namespace Bomberman.Api.Infrastructure
+﻿using Bomberman.Api.AStar;
+
+namespace Bomberman.Api.Infrastructure
 {
     public static class Global
     {
         public static int RoundTickIndex { get; set; }
+        public static int StopStreak { get; set; }
+        public static int StackStreak { get; set; }
+
+        public static AStarGrid AStarGrid { get; set; }
 
         public static Board Board { get; set; }
         public static Board PrevBoard { get; set; }

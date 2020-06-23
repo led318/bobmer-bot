@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Bomberman.Api.AStar;
 using Newtonsoft.Json;
 using Bomberman.Api.Infrastructure;
 
@@ -41,6 +42,7 @@ namespace Demo
             Global.NearPoints = new NearPoints();
             Global.OtherBombermans = new OtherBombermans();
             Global.Choppers = new Choppers();
+            Global.AStarGrid = new AStarGrid();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -112,7 +114,18 @@ namespace Demo
             else
             {
                 Global.Me.Tick();
+                var myOldPoint = Global.Me.Point;
                 Global.Me.Point = Global.Board.GetBomberman();
+
+                if (Global.Me.Point.Equals(myOldPoint))
+                {
+                    Global.StackStreak++;
+                }
+                else
+                {
+                    Global.StackStreak = 0;
+                }
+
 
                 Global.Choppers.Init();
 
@@ -127,6 +140,8 @@ namespace Demo
                 Global.Me.CheckMyBombs();
                 Global.NearPoints.Init();
                 Global.Me.PrintStatus();
+
+                Global.AStarGrid.Init();
 
                 CalculateActCurrentMove();
 
@@ -149,10 +164,18 @@ namespace Demo
 
         private void ProcessActCurrentMove()
         {
+            if (Global.StackStreak > 5)
+            {
+                _currentMoves.Add(Direction.Act);
+                Global.Me.SetMyBomb();
+                Console.WriteLine("ACT CURRENT MOVE!!!!!! Because of stack");
+                return;
+            }
+
             if (_isActCurrentMove)
             {
                 if (!Global.Me.HaveDirectAfkTargetCurrentStep
-                    && !Global.Me.NearEnemies.Any()
+                    && !Global.Me.NearNotAfkEnemies.Any()
                     && Global.Me.HaveMoreDestroyableWallsNextStep)
                 {
                     Console.WriteLine("skip act current move, next move more walls");
@@ -173,8 +196,9 @@ namespace Demo
                     return;
                 }
 
-                if (_currentDirection == Direction.Stop)
+                if (_currentDirection == Direction.Stop && Global.StopStreak <= 5)
                 {
+                    Global.StopStreak++;
                     Console.WriteLine("skip act current move, is blocked");
                     return;
                 }
@@ -186,6 +210,8 @@ namespace Demo
                     Console.WriteLine("ACT CURRENT MOVE!!!!!!");
                 }
             }
+
+            Global.StopStreak = 0;
         }
 
         private void WriteToLog(string str)
@@ -205,14 +231,15 @@ namespace Demo
             }
         }
 
-        private void CalculateActCurrentMove()
+        private void CalculateActCurrentMove(bool withWalls = false)
         {
             _isActCurrentMove = false;
 
 
             if (Global.Me.CanPlaceBombs)
             {
-                if (Global.Me.HaveDirectAfkTargetCurrentStep || Global.Me.NearEnemies.Any() || Global.Me.HaveDestroyableWallsNear)
+                //if (Global.Me.HaveDirectAfkTargetCurrentStep || Global.Me.NearEnemies.Any() || Global.Me.HaveDestroyableWallsNear)
+                if (Global.Me.HaveDirectAfkTargetCurrentStep || Global.Me.NearEnemies.Any() || (withWalls && Global.Me.HaveDestroyableWallsNear))
                 {
                     ActCurrentMove();
                 }
@@ -226,22 +253,83 @@ namespace Demo
             _isActCurrentMove = true;
         }
 
+        private bool UseAStar()
+        {
+            return !Global.Me.NearEnemies.Any()
+                && !Global.Me.NearBombs.Any()
+                ;
+        }
+
         private void CalculateAvailableDirection()
         {
             if (Global.NearPoints.OnlyCriticalDangerPoints)
             {
                 SetCurrentDirection();
-                WriteStopLog();
+                //WriteStopLog();
 
                 return;
             }
+
+            if (Config.EnableAStar && UseAStar())
+            {
+                var aStar = new MySolver<MyPathNode, Object>(Global.AStarGrid.Grid);
+                var startPoint = new System.Drawing.Point(Global.Me.Point.X, Global.Me.Point.Y);
+
+                //var target = Global.OtherBombermans.Target;
+                //if (Global.OtherBombermans.Target == null)
+                //{ }
+
+                var targetPoint =  new System.Drawing.Point(Global.OtherBombermans.Target.X, Global.OtherBombermans.Target.Y);
+
+                IEnumerable<MyPathNode> path = aStar.Search(startPoint, targetPoint, null);
+
+                if (path != null && path.Count() > 2)
+                {
+                    var firstPoint = path.ElementAt(0);
+                    var secondPoint = path.ElementAt(1);
+
+                    var deltaX = firstPoint.X - secondPoint.X;
+                    var deltaY = firstPoint.Y - secondPoint.Y;
+
+                    var isDiagonal = deltaX != 0 && deltaY != 0;
+                    if (isDiagonal)
+                    {
+                        var moveByX = Global.NearPoints.GetNonCriticalPoint(secondPoint.X, firstPoint.Y);
+                        if (moveByX != null)
+                        {
+                            SetCurrentDirection(moveByX);
+                            return;
+                        }
+
+
+                        var moveByY = Global.NearPoints.GetNonCriticalPoint(firstPoint.X, secondPoint.Y);
+                        if (moveByY != null)
+                        {
+                            SetCurrentDirection(moveByY);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        var nearPoint = Global.NearPoints.GetNonCriticalPoint(secondPoint.X, secondPoint.Y);
+                        if (nearPoint != null)
+                        {
+                            SetCurrentDirection(nearPoint);
+                            return;
+                        }
+                    }
+
+                    return;
+                }
+            }
+
+            CalculateActCurrentMove(true);
 
             var minRatingPoints = Global.NearPoints.GetMinRatingPoints();
             if (minRatingPoints.Count() > 1 && Global.OtherBombermans.Target != null)
                 minRatingPoints = Helper.GetNearest(Global.OtherBombermans.Target, minRatingPoints);
 
             SetRandomNearPoint(minRatingPoints);
-            return;
         }
 
         private void SetRandomNearPoint(IEnumerable<NearPoint> nearPoints)

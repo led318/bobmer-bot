@@ -46,5 +46,15 @@
             Element.WALL,
             Element.DESTROYABLE_WALL
         };
+
+        public static readonly Element[] WALL_ELEMENTS_ASTAR = new[] {
+            Element.WALL,
+            Element.DESTROYABLE_WALL,
+            Element.BOMB_TIMER_1,
+            Element.BOMB_TIMER_2,
+            Element.BOMB_TIMER_3,
+            Element.BOMB_TIMER_4,
+            Element.BOMB_TIMER_5,
+        };
     }
 }

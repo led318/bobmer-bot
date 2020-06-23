@@ -63,7 +63,10 @@ namespace Bomberman.Api
 
         #region Near Enemies
         public IEnumerable<Point> NearEnemies { get; private set; } = new List<Point>();
+        public IEnumerable<Point> NearNotAfkEnemies { get; private set; } = new List<Point>();
         public IEnumerable<Point> NearMeatChoppers { get; private set; } = new List<Point>();
+
+        public IEnumerable<Point> NearBombs { get; private set; } = new List<Point>();
 
         public bool HaveDirectAfkTargetCurrentStep => Global.OtherBombermans.IsTargetAfk && HaveDirectAfkTarget(true);
         public bool HaveDirectAfkTargetNextStep => Global.OtherBombermans.IsTargetAfk && HaveDirectAfkTarget(false);
@@ -106,10 +109,13 @@ namespace Bomberman.Api
         public void InitNearEnemies()
         {
             NearEnemies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ENEMIES_ELEMENTS);
-            NearEnemies = NearEnemies.Where(x => !Global.OtherBombermans.AfkOtherBombermans.Contains(x)).ToList();
+
+            NearNotAfkEnemies = NearEnemies.Where(x => !Global.OtherBombermans.AfkOtherBombermans.Contains(x)).ToList();
 
             NearMeatChoppers = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Element.MEAT_CHOPPER);
 
+            var allBombs = Global.Board.GetBombs();
+            NearBombs = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint + 1, allBombs);
         }
 
         #endregion
