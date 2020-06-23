@@ -165,7 +165,7 @@ namespace Bomberman.Api
 
             var myFirstRCBomb = MyBombs.FirstOrDefault(b => b.IsRc);
             MyFirstRCBombFutureBlasts = myFirstRCBomb != null
-                ? Global.Board.GetFutureBlastsForBombs(myFirstRCBomb.Point)
+                ? Global.Board.GetFutureBlastsForBombs(myFirstRCBomb.Point, MyBombsPower)
                 : new List<Point>();
         }        
 
@@ -184,7 +184,7 @@ namespace Bomberman.Api
 
         #region Bonus
         //public bool IsBonusRC => IsBonusType(Element.BOMB_REMOTE_CONTROL); //wrong logic
-        public bool CanUseRC => IsMyBombRC && !IsMeOnMyFirstRCBombBlast;
+        public bool CanUseRC => IsMyBombRC && (!IsMeOnMyFirstRCBombBlast || IsBonusImmune);
         private List<BonusRC> BonusesRC => Bonuses.Select(b => b as BonusRC).Where(b => b != null).OrderBy(b => b.UsesLeft).ToList();
         public void UseRC()
         {
