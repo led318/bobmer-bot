@@ -13,7 +13,7 @@ namespace Bomberman.Api
         public MovePosition MovePosition { get; private set; }
         public List<MovePosition> MoveHistory { get; private set; } = new List<MovePosition>();
 
-        private List<Point> _nextTickPoints { get; set; } = new List<Point>();
+        private List<Tuple<MovePosition, Point>> _nextTickPoints { get; set; } = new List<Tuple<MovePosition, Point>>();
         public List<BoardPoint> BoardPoints { get; private set; } = new List<BoardPoint>();
 
         private readonly Element[] CanNotMoveThrought = new Element[]
@@ -94,23 +94,23 @@ namespace Bomberman.Api
             _nextTickPoints.Clear();
 
             var top = Point.ShiftTop();
-            _nextTickPoints.Add(top);
+            _nextTickPoints.Add(new Tuple<MovePosition, Point>(MovePosition.Top, top));
 
             var bottom = Point.ShiftBottom();
-            _nextTickPoints.Add(bottom);
+            _nextTickPoints.Add(new Tuple<MovePosition, Point>(MovePosition.Bottom, bottom));
 
             var right = Point.ShiftRight();
-            _nextTickPoints.Add(right);
+            _nextTickPoints.Add(new Tuple<MovePosition, Point>(MovePosition.Right, right));
 
             var left = Point.ShiftLeft();
-            _nextTickPoints.Add(left);
+            _nextTickPoints.Add(new Tuple<MovePosition, Point>(MovePosition.Left, left));
         }
 
         public void InitBoardPoints()
         {
             BoardPoints.Clear();
 
-            var coefficients = new List<Tuple<int, int>>();
+            var coefficients = new List<Tuple<int, int, MoveDirection>>();
             var result = new List<BoardPoint>();
 
             if (IsUnknownPossibleDirection)
@@ -119,12 +119,12 @@ namespace Bomberman.Api
                 {
                     var point = _nextTickPoints[i];
 
-                    if (Global.Board.IsAnyOfAt(point, CanNotMoveThrought))
+                    if (Global.Board.IsAnyOfAt(point.Item2, CanNotMoveThrought))
                     {
                         continue;
                     }
 
-                    coefficients.Add(new Tuple<int, int>(i, _nextTickMaxPossibility));
+                    coefficients.Add(new Tuple<int, int, MoveDirection>(i, _nextTickMaxPossibility, _nextTickMoveDirectionMap[i]));
                 }
             }
             else
@@ -133,13 +133,13 @@ namespace Bomberman.Api
                 {
                     var point = _nextTickPoints[i];
 
-                    if (Global.Board.IsAnyOfAt(point, CanNotMoveThrought))
+                    if (Global.Board.IsAnyOfAt(point.Item2, CanNotMoveThrought))
                     {
                         continue;
                     }
 
                     var coefficient = _nextTickPointMovePossibilities[_nextTickMoveDirectionMap[i]];
-                    coefficients.Add(new Tuple<int, int>(i, coefficient));
+                    coefficients.Add(new Tuple<int, int, MoveDirection>(i, coefficient, _nextTickMoveDirectionMap[i]));
                 }
             }
 
@@ -148,9 +148,11 @@ namespace Bomberman.Api
             {
                 var point = _nextTickPoints[coefficient.Item1];
 
-                var boardPoint = new BoardPoint(point)
+                var boardPoint = new BoardPoint(point.Item2)
                 {
-                    ChopperPossibility = coefficient.Item2 * 100 / coefficientsSum
+                    ChopperPossibility = coefficient.Item2 * 100 / coefficientsSum,
+                    ChopperMoveDirection = coefficient.Item3,
+                    ChopperMovePosition = point.Item1
                 };
 
                 result.Add(boardPoint);
@@ -158,8 +160,32 @@ namespace Bomberman.Api
 
             BoardPoints.AddRange(result);
 
+            CalculateNextStepBoardPoints();
+
             //Console.WriteLine(string.Join(" | ", BoardPoints.Select(x => x.Point + " " + x.ChopperPossibility)));
             //return result;
+        }
+
+        private void CalculateNextStepBoardPoints()
+        {
+            var maxPossibility = BoardPoints.Max(x => x.ChopperPossibility);
+            var maxPossibilityPoints = BoardPoints.Where(x => x.ChopperPossibility == maxPossibility).ToList();
+
+            var possibility = maxPossibilityPoints.Count > 1 ? 50 : 69;
+
+            foreach (var maxPossibilityPoint in maxPossibilityPoints)
+            {
+                var nextStepPoint = maxPossibilityPoint.GetNearPoint(maxPossibilityPoint.ChopperMovePosition);
+
+                var boardPoint = new BoardPoint(nextStepPoint)
+                {
+                    ChopperPossibility = possibility,
+                    ChopperMoveDirection = maxPossibilityPoint.ChopperMoveDirection,
+                    ChopperMovePosition = maxPossibilityPoint.ChopperMovePosition
+                };
+
+                BoardPoints.Add(boardPoint);
+            }
         }
 
         public void SetPosition(MovePosition movePosition)

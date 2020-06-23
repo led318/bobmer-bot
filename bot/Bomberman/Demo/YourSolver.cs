@@ -135,33 +135,7 @@ namespace Demo
                 CalculateAvailableDirection();
                 CheckUseRC();
 
-                if (_isActCurrentMove)
-                {
-                    if (!Global.Me.HaveDirectAfkTargetCurrentStep 
-                            && !Global.Me.NearEnemies.Any() 
-                            && Global.Me.HaveMoreDestroyableWallsNextStep)
-                    {
-                        Console.WriteLine("skip act current move, next move more walls");
-                    }
-                    else if (!Global.Me.HaveDirectAfkTargetCurrentStep
-                        && !Global.Me.NearMeatChoppers.Any() 
-                        && Global.Me.HaveDirectAfkTargetNextStep)
-                    {
-                        Console.WriteLine("skip act current move, next move afk target");
-                    }
-                    else if (Global.Me.HaveDirectBonus())
-                    {
-                        Console.WriteLine("skip act current move, to not produce zombie");
-                    } else 
-                    {
-                        if (!Global.HasManualMove)
-                        {
-                            _currentMoves.Add(Direction.Act);
-                            Global.Me.SetMyBomb();
-                            Console.WriteLine("ACT CURRENT MOVE!!!!!!");
-                        }
-                    }
-                }
+                ProcessCurrentMove();
 
                 if (!Global.HasManualMove)
                 {
@@ -171,6 +145,41 @@ namespace Demo
 
             if (Global.HasManualMove)
                 Global.ManualMove = string.Empty;
+        }
+
+        private void ProcessCurrentMove()
+        {
+            if (_isActCurrentMove)
+            {
+                if (!Global.Me.HaveDirectAfkTargetCurrentStep
+                    && !Global.Me.NearEnemies.Any()
+                    && Global.Me.HaveMoreDestroyableWallsNextStep)
+                {
+                    Console.WriteLine("skip act current move, next move more walls");
+                    return;
+                }
+
+                if (!Global.Me.HaveDirectAfkTargetCurrentStep
+                         && !Global.Me.NearMeatChoppers.Any()
+                         && Global.Me.HaveDirectAfkTargetNextStep)
+                {
+                    Console.WriteLine("skip act current move, next move afk target");
+                    return;
+                }
+
+                if (Global.Me.HaveDirectBonus())
+                {
+                    Console.WriteLine("skip act current move, to not produce zombie");
+                    return;
+                }
+
+                if (!Global.HasManualMove)
+                {
+                    _currentMoves.Add(Direction.Act);
+                    Global.Me.SetMyBomb();
+                    Console.WriteLine("ACT CURRENT MOVE!!!!!!");
+                }
+            }
         }
 
         private void WriteToLog(string str)

@@ -53,10 +53,8 @@ namespace Bomberman.Api
             return MovePosition.Unknown;
         }
 
-        public Point GetNearPosition(MovePosition position, MoveDirection direction)
+        public Point GetNearPoint(MovePosition movePosition)
         {
-            var movePosition = GetMovePositionForDirection(position, direction);
-
             switch (movePosition)
             {
                 case MovePosition.Top:
@@ -70,6 +68,28 @@ namespace Bomberman.Api
 
                 case MovePosition.Left:
                     return Point.ShiftLeft();
+            }
+
+            throw new Exception("something went wrong");
+        }
+
+        public Tuple<MovePosition, Point> GetNearPosition(MovePosition position, MoveDirection direction)
+        {
+            var movePosition = GetMovePositionForDirection(position, direction);
+
+            switch (movePosition)
+            {
+                case MovePosition.Top:
+                    return new Tuple<MovePosition, Point>(MovePosition.Top, Point.ShiftTop());
+
+                case MovePosition.Right:
+                    return new Tuple<MovePosition, Point>(MovePosition.Right, Point.ShiftRight());
+
+                case MovePosition.Bottom:
+                    return new Tuple<MovePosition, Point>(MovePosition.Bottom, Point.ShiftBottom());
+
+                case MovePosition.Left:
+                    return new Tuple<MovePosition, Point>(MovePosition.Left, Point.ShiftLeft());
             }
 
             throw new Exception("HasPoint.GetNearPosition: something went wrong");
