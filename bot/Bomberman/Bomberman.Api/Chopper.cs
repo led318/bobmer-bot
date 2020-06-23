@@ -168,6 +168,10 @@ namespace Bomberman.Api
 
         private void CalculateNextStepBoardPoints()
         {
+            if (!BoardPoints.Any())
+                return;
+
+
             var maxPossibility = BoardPoints.Max(x => x.ChopperPossibility);
             var maxPossibilityPoints = BoardPoints.Where(x => x.ChopperPossibility == maxPossibility).ToList();
 

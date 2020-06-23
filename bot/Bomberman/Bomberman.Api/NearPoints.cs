@@ -15,7 +15,7 @@ namespace Bomberman.Api
             new NearPoint(Direction.Left)
         };
 
-        public bool OnlyDangerPoints => Points.All(x => x.IsDanger);
+        public bool OnlyCriticalDangerPoints => Points.All(x => x.IsCriticalDanger);
 
         public void InitActNearPoints(bool isActCurrentMove)
         {
@@ -35,16 +35,21 @@ namespace Bomberman.Api
                 nearPoint.Init(Infrastructure.Global.Me.Point);
         }
 
+        private string RatingStr(NearPoint nearPoint)
+        {
+
+            return nearPoint.IsCriticalDanger ? $"*{nearPoint.Rating,2}*" : $" {nearPoint.Rating,2} ";
+        }
+
         public string GetPrintStr()
         {
-            var str = $@"+--------------+
-|      {Points[0].NextNearPoint.Rating,2}      |
-|      {Points[0].Rating,2}      |
-|{Points[3].NextNearPoint.Rating,2} {Points[3].Rating,2}    {Points[1].Rating,2} {Points[1].NextNearPoint.Rating,2}|
-|      {Points[2].Rating,2}      |
-|      {Points[2].NextNearPoint.Rating,2}      |
-+--------------+
-";
+            var str = $@"+----------------------+
+|         {RatingStr(Points[0].NextNearPoint),2}         |
+|         {RatingStr(Points[0]),2}         |
+|{RatingStr(Points[3].NextNearPoint),2} {RatingStr(Points[3]),2}    {RatingStr(Points[1]),2} {RatingStr(Points[1].NextNearPoint),2}|
+|         {RatingStr(Points[2]),2}         |
+|         {RatingStr(Points[2].NextNearPoint),2}         |
++----------------------+";
 
             return str;
         }

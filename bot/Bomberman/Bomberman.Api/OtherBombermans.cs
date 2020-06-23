@@ -8,11 +8,11 @@ namespace Bomberman.Api
     public class OtherBombermans
     {
         private List<OtherBomberman> _afkOtherBombermansStatus = new List<OtherBomberman>();
-        private List<Point> _afkOtherBombermans =>
+        public List<Point> AfkOtherBombermans =>
             _afkOtherBombermansStatus.Where(b => b.AfkPoints >= Config.AfkBreakpoint).Select(b => b.Point).ToList();
 
         public Point Target { get; set; }
-        public bool IsTargetAfk => Config.IsLocal || _afkOtherBombermans.Any();
+        public bool IsTargetAfk => Config.IsLocal || AfkOtherBombermans.Any();
         public List<Point> Bombermans { get; set; }
 
         public void Clear()
@@ -29,9 +29,9 @@ namespace Bomberman.Api
             if (CalculateSuicide())
                 return true;
 
-            if (_afkOtherBombermans.Any())
+            if (AfkOtherBombermans.Any())
             {
-                CalculateTargetBomberman(_afkOtherBombermans);
+                CalculateTargetBomberman(AfkOtherBombermans);
                 Console.WriteLine("target: " + Target + " AFK");
             }
             else if (Bombermans.Any())
@@ -73,7 +73,7 @@ namespace Bomberman.Api
             {
                 Global.Me.SuicidePoints++;
 
-                if (Global.Me.IsForceSuicide || (Global.Me.IsSuicide && !_afkOtherBombermans.Any()))
+                if (Global.Me.IsForceSuicide || (Global.Me.IsSuicide && !AfkOtherBombermans.Any()))
                 {
                     Console.WriteLine(Global.Me.SuicideMessage);                    
                     return true;

@@ -24,8 +24,10 @@ namespace Bomberman.Api
         public int DestroyableWallsNextStepCount => PreviousMove != null ? GetPointDestroyableWalls(PreviousMove.Point).Count() : 0;
         public bool HaveDestroyableWallsNextStep => DestroyableWallsNextStepCount > 0;
 
-        public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsNearCount == 1
-            && DestroyableWallsNearCount < DestroyableWallsNextStepCount;
+        //public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsNearCount == 1
+        //    && DestroyableWallsNearCount < DestroyableWallsNextStepCount;
+
+        public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsNearCount < DestroyableWallsNextStepCount;
 
         public List<Point> GetPointDestroyableWalls(Point point, bool currentStep = true) 
         {
@@ -104,6 +106,8 @@ namespace Bomberman.Api
         public void InitNearEnemies()
         {
             NearEnemies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ENEMIES_ELEMENTS);
+            NearEnemies = NearEnemies.Where(x => !Global.OtherBombermans.AfkOtherBombermans.Contains(x)).ToList();
+
             NearMeatChoppers = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Element.MEAT_CHOPPER);
 
         }
@@ -251,7 +255,7 @@ namespace Bomberman.Api
             var result = new List<Point>();
             var blastSize = MyBombsForSearchPower;
 
-            var startPoint = PreviousMove.Point;
+            var startPoint = Point;
 
             CheckDirectBonus(result, startPoint, blastSize, p => p.ShiftTop());
             CheckDirectBonus(result, startPoint, blastSize, p => p.ShiftRight());

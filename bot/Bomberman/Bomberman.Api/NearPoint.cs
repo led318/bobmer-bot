@@ -35,24 +35,18 @@ namespace Bomberman.Api
 
         #region Near Chopper
         public Chopper NearChopper { get; set; }
+        public int NearChopperPossibility => !IsNearChopper ? 0 : NearChopper.GetPossibility(Point);
         public bool IsNearChopper => NearChopper != null;
 
         public int GetNearChopperDangerPoints(bool isNextNearPoint = false)
         {
-            if (!IsNearChopper)
+            if (NearChopperPossibility == 0)
                 return 0;
 
-            var possibility = NearChopper.GetPossibility(Point);
-
-            //Console.WriteLine($"{Point} chopper possibility: {possibility}%");
-
-            if (possibility == 0)
-                return 0;
-
-            if (possibility > 60)
+            if (NearChopperPossibility > 60)
                 return isNextNearPoint ? Config.DangerRatingHigh : Config.DangerRatingCritical;
 
-            if (possibility > 20)
+            if (NearChopperPossibility > 20)
                 return isNextNearPoint ? Config.DangerRatingMedium : Config.DangerRatingHigh;
 
             return isNextNearPoint ? Config.DangerRatingLow : Config.DangerRatingMedium;
@@ -63,11 +57,14 @@ namespace Bomberman.Api
         public bool IsBlast => Element == Element.BOOM;
         public bool IsWall => Element == Element.WALL;
         public bool IsDestroyableWall => Element == Element.DESTROYABLE_WALL;
+        public bool IsDestroyedWall => Element == Element.DestroyedWall;
 
         public bool IsChopper => Element == Element.MEAT_CHOPPER;
         public bool IsBombChopper => IsChopper && Global.HasPrevBoard && Global.PrevBoard.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS);
 
         public bool IsZombieChopper => Element == Element.DeadMeatChopper;
+        public bool IsNearZombieChopper => Global.Board.IsNear(Point, Element.DeadMeatChopper);
+
         public bool IsOtherBomberman => Constants.OTHER_BOMBERMANS_ELEMENTS.Contains(Element);
         public bool IsOtherBombBomberman => Element == Element.OTHER_BOMB_BOMBERMAN;
 
@@ -81,6 +78,50 @@ namespace Bomberman.Api
 
         public bool IsDanger => Rating > Config.DangerBreakpoint;
 
+        public bool IsCriticalDanger
+        {
+            get
+            {
+                if (IsWall)
+                    return true;
+
+                if (IsDestroyableWall)
+                    return true;
+
+                if (IsBomb)
+                    return true;
+
+                if (IsZombieChopper)
+                    return true;
+
+                if (IsNearZombieChopper)
+                    return true;
+
+                if (!Global.Me.IsBonusImmune && IsFutureBlastNextStep)
+                    return true;
+
+                //if (IsChopper)
+                //    return true;
+
+                if (IsOtherBomberman)
+                    return true;
+
+                if (NearChopperPossibility > 60)
+                    return true;
+
+                if (NextNearPoint != null)
+                {
+                    if (NextNearPoint.IsOtherBombBomberman)
+                        return true;
+
+                    if (NextNearPoint.IsNearZombieChopper)
+                        return true;
+                }
+
+                    return false;
+            }
+        }
+
         public int Rating
         {
             get
@@ -88,16 +129,22 @@ namespace Bomberman.Api
                 var result = 0;
 
                 if (IsWall)
+                {
                     result += Config.DangerRatingCritical;
+                }
 
                 if (IsDestroyableWall)
+                {
                     result += Config.DangerRatingCritical;
+                }
 
                 if (!IsEmpty)
                     result += Config.DangerRatingLow;
 
                 if (IsBomb)
+                {
                     result += Config.DangerRatingCritical;
+                }
 
                 if (IsZombieChopper)
                 {
@@ -105,11 +152,25 @@ namespace Bomberman.Api
                     Console.WriteLine("ZOMBIE!!! next");
                 }
 
+                if (IsNearZombieChopper)
+                {
+                    result += Config.DangerRatingCritical;
+                    Console.WriteLine("NEAR ZOMBIE!!! next");
+                }
+
+                if (IsDestroyedWall)
+                {
+                    result += Config.DangerRatingMedium;
+                }
+
+
                 if (!Global.Me.IsBonusImmune && IsFutureBlast)
                     result += Config.DangerRatingMedium;
 
                 if (!Global.Me.IsBonusImmune && IsFutureBlastNextStep)
+                {
                     result += Config.DangerRatingCritical;
+                }
 
                 if (!Global.Me.IsBonusImmune && IsBonusFutureBlastNextStep)
                     result += Config.DangerRatingMedium;
@@ -118,16 +179,20 @@ namespace Bomberman.Api
                     result += GetNearChopperDangerPoints();
 
                 if (IsChopper)
+                {
                     result += Config.DangerRatingCritical;
+                }
 
                 if (IsOtherBomberman)
+                {
                     result += Config.DangerRatingCritical;
+                }
 
                 if (IsBonus)
                     result -= (Config.DangerRatingHigh + Config.DangerRatingMedium);
 
                 if (IsActCurrentMove && HasSideToEscape())
-                    result -= Config.DangerRatingHigh;
+                    result -= (Config.DangerRatingHigh + Config.DangerRatingMedium);
 
                 if (NextNearPoint != null)
                 {
@@ -147,12 +212,25 @@ namespace Bomberman.Api
                         result += Config.DangerRatingMedium;
 
                     if (NextNearPoint.IsOtherBombBomberman)
+                    {
                         result += Config.DangerRatingCritical;
+                    }
 
                     if (NextNearPoint.IsZombieChopper)
                     {
                         result += Config.DangerRatingHigh;
                         Console.WriteLine("ZOMBIE!!! +1");
+                    }
+
+                    if (NextNearPoint.IsNearZombieChopper)
+                    {
+                        result += Config.DangerRatingCritical;
+                        Console.WriteLine("NEAR ZOMBIE!!! +1");
+                    }
+
+                    if (NextNearPoint.IsDestroyedWall)
+                    {
+                        result += Config.DangerRatingLow;
                     }
 
                     if (NextNearPoint.IsBonus)
@@ -167,13 +245,16 @@ namespace Bomberman.Api
                                              || NextNearPoint.IsOtherBomberman
                                              || NextNearPoint.IsOtherBombBomberman
                                              || NextNearPoint.IsBombChopper))
+                    {
                         result += Config.DangerRatingCritical;
+                    }
 
                     if (NextNearPoint.NextNearPoint != null)
                     {
                         if (IsActCurrentMove && (NextNearPoint.NextNearPoint.IsWall
                                                  || NextNearPoint.NextNearPoint.IsDestroyableWall
                                                  || NextNearPoint.NextNearPoint.IsBomb
+                                                 || NextNearPoint.NextNearPoint.IsOtherBomberman
                                                  || NextNearPoint.NextNearPoint.IsOtherBombBomberman
                                                  || NextNearPoint.NextNearPoint.IsBombChopper))
                             result += Config.DangerRatingHigh;
@@ -188,6 +269,17 @@ namespace Bomberman.Api
                         {
                             result += Config.DangerRatingHigh;
                             Console.WriteLine("ZOMBIE!!! +2");
+                        }
+
+                        if (NextNearPoint.NextNearPoint.IsNearZombieChopper)
+                        {
+                            result += Config.DangerRatingHigh;
+                            Console.WriteLine("NEAR ZOMBIE!!! +2");
+                        }
+
+                        if (NextNearPoint.NextNearPoint.IsDestroyedWall)
+                        {
+                            result += Config.DangerRatingLow;
                         }
                     }
                 }
@@ -220,6 +312,8 @@ namespace Bomberman.Api
             NearChopper = Global.Choppers.Get(Point);
 
             InitSidePoints();
+
+
 
             if (nestLevel < Config.NearNestLevel)
             {

@@ -135,7 +135,7 @@ namespace Demo
                 CalculateAvailableDirection();
                 CheckUseRC();
 
-                ProcessCurrentMove();
+                ProcessActCurrentMove();
 
                 if (!Global.HasManualMove)
                 {
@@ -147,7 +147,7 @@ namespace Demo
                 Global.ManualMove = string.Empty;
         }
 
-        private void ProcessCurrentMove()
+        private void ProcessActCurrentMove()
         {
             if (_isActCurrentMove)
             {
@@ -167,9 +167,15 @@ namespace Demo
                     return;
                 }
 
-                if (Global.Me.HaveDirectBonus())
+                if (Global.Me.HaveDirectBonus() && !Global.Me.HaveDirectAfkTargetCurrentStep)
                 {
                     Console.WriteLine("skip act current move, to not produce zombie");
+                    return;
+                }
+
+                if (_currentDirection == Direction.Stop)
+                {
+                    Console.WriteLine("skip act current move, is blocked");
                     return;
                 }
 
@@ -222,7 +228,7 @@ namespace Demo
 
         private void CalculateAvailableDirection()
         {
-            if (Global.NearPoints.OnlyDangerPoints)
+            if (Global.NearPoints.OnlyCriticalDangerPoints)
             {
                 SetCurrentDirection();
                 WriteStopLog();
