@@ -31,6 +31,7 @@ namespace Bomberman.Api
 
         private int _bonusBombPower => Config.BombsDefaultPower + Config.BonusBlastIncrease;
         public bool IsBonusFutureBlastNextStep { get; set; }
+        public bool IsBonusRCBlastNextStep { get; set; }
         public bool IsBomb { get; set; }
 
         #region Near Chopper
@@ -149,13 +150,13 @@ namespace Bomberman.Api
                 if (IsZombieChopper)
                 {
                     result += Config.DangerRatingCritical;
-                    Console.WriteLine("ZOMBIE!!! next");
+                    //Console.WriteLine("ZOMBIE!!! next");
                 }
 
                 if (IsNearZombieChopper)
                 {
                     result += Config.DangerRatingCritical;
-                    Console.WriteLine("NEAR ZOMBIE!!! next");
+                   // Console.WriteLine("NEAR ZOMBIE!!! next");
                 }
 
                 if (IsDestroyedWall)
@@ -174,6 +175,9 @@ namespace Bomberman.Api
 
                 if (!Global.Me.IsBonusImmune && IsBonusFutureBlastNextStep)
                     result += Config.DangerRatingMedium;
+
+                if (!Global.Me.IsBonusImmune && IsBonusRCBlastNextStep)
+                    result += Config.DangerRatingHigh;
 
                 if (IsNearChopper)
                     result += GetNearChopperDangerPoints();
@@ -211,6 +215,9 @@ namespace Bomberman.Api
                     if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlastNextStep)
                         result += Config.DangerRatingMedium;
 
+                    if (!Global.Me.IsBonusImmune && NextNearPoint.IsBonusRCBlastNextStep)
+                        result += Config.DangerRatingMedium;
+
                     if (NextNearPoint.IsOtherBombBomberman)
                     {
                         result += Config.DangerRatingCritical;
@@ -219,13 +226,13 @@ namespace Bomberman.Api
                     if (NextNearPoint.IsZombieChopper)
                     {
                         result += Config.DangerRatingHigh;
-                        Console.WriteLine("ZOMBIE!!! +1");
+                       // Console.WriteLine("ZOMBIE!!! +1");
                     }
 
                     if (NextNearPoint.IsNearZombieChopper)
                     {
                         result += Config.DangerRatingCritical;
-                        Console.WriteLine("NEAR ZOMBIE!!! +1");
+                       // Console.WriteLine("NEAR ZOMBIE!!! +1");
                     }
 
                     if (NextNearPoint.IsDestroyedWall)
@@ -268,13 +275,13 @@ namespace Bomberman.Api
                         if (NextNearPoint.NextNearPoint.IsZombieChopper)
                         {
                             result += Config.DangerRatingHigh;
-                            Console.WriteLine("ZOMBIE!!! +2");
+                           // Console.WriteLine("ZOMBIE!!! +2");
                         }
 
                         if (NextNearPoint.NextNearPoint.IsNearZombieChopper)
                         {
                             result += Config.DangerRatingHigh;
-                            Console.WriteLine("NEAR ZOMBIE!!! +2");
+                            //Console.WriteLine("NEAR ZOMBIE!!! +2");
                         }
 
                         if (NextNearPoint.NextNearPoint.IsDestroyedWall)
@@ -306,6 +313,27 @@ namespace Bomberman.Api
             IsFutureBlast = Global.Board.GetFutureBlasts().Any(b => b.Equals(Point));
             IsFutureBlastNextStep = Global.Board.GetFutureBlasts(true).Any(b => b.Equals(Point));
             IsBonusFutureBlastNextStep = Global.Board.GetFutureBlasts(true, _bonusBombPower).Any(b => b.Equals(Point));
+
+            var rcBombs = Global.Board.Get(Element.BOMB_TIMER_5);
+            if (Global.HasPrevBoard)
+            {
+                var prevRCBombs = Global.PrevBoard.Get(Element.BOMB_TIMER_5);
+                var notPresentPrevRCBombs = prevRCBombs.Where(x => !rcBombs.Contains(x)).ToList();
+
+                foreach (var notPresentPrevRCBomb in notPresentPrevRCBombs)
+                {
+                    var currentElement = Global.Board.GetAt(notPresentPrevRCBomb);
+                    if (currentElement == Element.MEAT_CHOPPER)
+                    {
+                        rcBombs.Add(notPresentPrevRCBomb);
+                    }
+                }
+            }
+
+            rcBombs = rcBombs.Where(x => !Global.Me.MyRCBombs.GetPoints().Contains(x)).ToList();
+
+            IsBonusRCBlastNextStep = Global.Board.GetFutureBlastsForBombs(rcBombs, _bonusBombPower).Any(b => b.Equals(Point));
+
 
             IsBomb = Global.Board.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS) || IsBombChopper;
             //IsNearChopper = Global.Board.IsNearChopper(Point);
