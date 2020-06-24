@@ -274,7 +274,7 @@ namespace Bomberman.Api
                 //    result -= Config.DangerRatingMedium;
 
                 if (Helper.HaveNearAfkTarget(Point))
-                    result -= Config.DangerRatingHigh;
+                    result -= Config.DangerRatingMedium;
 
                 if (NextNearPoint != null)
                 {
