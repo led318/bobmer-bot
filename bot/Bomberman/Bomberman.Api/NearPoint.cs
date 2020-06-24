@@ -24,7 +24,7 @@ namespace Bomberman.Api
         public Element Element { get; set; }
 
         public NearPoint NextNearPoint { get; set; }
-        public bool IsActCurrentMove { get; set; }
+        //public bool IsActCurrentMove { get; set; }
         public bool IsEmpty => Constants.MOVABLE_ELEMENTS.Contains(Element);
         public bool IsFutureBlast { get; set; }
         public bool IsFutureBlastNextStep { get; set; }
@@ -79,8 +79,54 @@ namespace Bomberman.Api
         #endregion
 
         public int DestroyableWallsCount => Helper.GetDestroyableWallsCount(Point);
+        public bool HaveMoreDestroyableWalls => DestroyableWallsCount > Global.Me.DestroyableWallsCount;
 
         public bool IsDanger => Rating > Config.DangerBreakpoint;
+
+        public bool IsDangerForActThenMove
+        {
+            get
+            {
+                var nextPoint = NextNearPoint != null
+                                                     && (NextNearPoint.IsWall
+                                                         || NextNearPoint.IsDestroyableWall
+                                                         || NextNearPoint.IsBomb
+                                                         || NextNearPoint.IsOtherBomberman
+                                                         || NextNearPoint.IsOtherBombBomberman
+                                                         || NextNearPoint.IsBombChopper);
+
+                var nextNextPoint = NextNearPoint != null
+                                    && NextNearPoint.NextNearPoint != null
+                                    && (NextNearPoint.NextNearPoint.IsWall
+                                        || NextNearPoint.NextNearPoint.IsDestroyableWall
+                                        || NextNearPoint.NextNearPoint.IsBomb
+                                        || NextNearPoint.NextNearPoint.IsOtherBomberman
+                                        || NextNearPoint.NextNearPoint.IsOtherBombBomberman
+                                        || NextNearPoint.NextNearPoint.IsBombChopper);
+
+                return nextPoint || nextNextPoint;
+            }
+        }
+
+        public bool IsSafeForActThenMove
+        {
+            get
+            {
+                var thisPoint = HaveSideToEscape();
+                var nextPoint = NextNearPoint != null && NextNearPoint.HaveSideToEscape();
+                var nextNextPoint = NextNearPoint != null
+                                    && NextNearPoint.NextNearPoint != null 
+                                    && NextNearPoint.NextNearPoint.HaveSideToEscape();
+
+                return thisPoint || nextPoint || nextNextPoint;
+            }
+        }
+
+        #region Target
+
+        public bool HaveDirectAfkTarget => Global.Me.HaveDirectAfkTarget(Point);
+
+        #endregion
 
         public bool IsCriticalDanger
         {
@@ -102,6 +148,9 @@ namespace Bomberman.Api
                     return true;
 
                 if (!Global.Me.IsBonusImmune && IsFutureBlastNextStep)
+                    return true;
+
+                if (Global.Me.IsOnBomb && IsDangerForActThenMove && !IsSafeForActThenMove)
                     return true;
 
                 //if (IsChopper)
@@ -196,17 +245,30 @@ namespace Bomberman.Api
                 }
 
                 if (IsBonus)
-                    result -= (Config.DangerRatingHigh + Config.DangerRatingMedium);
+                    result -= Config.DangerRatingHigh;
 
+                /*
                 if (IsActCurrentMove && HasSideToEscape())
                     result -= (Config.DangerRatingHigh + Config.DangerRatingMedium);
+                */
 
-                if (IsActCurrentMove
-                    && !Global.Me.HaveDirectAfkTargetCurrentStep
-                    && Global.Me.HaveDirectAfkTargetNextStep)
-                {
-                    result -= Config.DangerRatingHigh;
-                }
+                //if (!Global.Me.HaveDirectAfkTargetCurrentStep
+                //    && Global.Me.HaveDirectAfkTarget(Point))
+                //{
+                //    result -= Config.DangerRatingHigh;
+                //}
+
+                if (IsDangerForActThenMove)
+                    result += Config.DangerRatingCritical;
+
+                //if (Global.Me.IsOnBomb && IsDangerForActThenMove && !IsSafeForActThenMove)
+                //    result += Config.DangerRatingCritical;
+
+                if (IsDangerForActThenMove && IsSafeForActThenMove)
+                    result -= Config.DangerRatingCritical;
+
+                if (Helper.HaveDirectAfkTarget(Point))
+                    result -= Config.DangerRatingMedium;
 
                 if (NextNearPoint != null)
                 {
@@ -253,9 +315,13 @@ namespace Bomberman.Api
                     if (NextNearPoint.IsBonus)
                         result -= Config.DangerRatingMedium;
 
-                    if (IsActCurrentMove && NextNearPoint.HasSideToEscape())
-                        result -= Config.DangerRatingHigh;
+                    //if (Helper.HaveDirectAfkTarget(NextNearPoint.Point))
+                    //    result -= Config.DangerRatingLow;
 
+                    //if (IsActCurrentMove && NextNearPoint.HasSideToEscape())
+                    //    result -= Config.DangerRatingHigh;
+
+                    /*
                     if (IsActCurrentMove && (NextNearPoint.IsWall
                                              || NextNearPoint.IsDestroyableWall
                                              || NextNearPoint.IsBomb
@@ -265,9 +331,11 @@ namespace Bomberman.Api
                     {
                         result += Config.DangerRatingCritical;
                     }
+                    */
 
                     if (NextNearPoint.NextNearPoint != null)
                     {
+                        /*
                         if (IsActCurrentMove && (NextNearPoint.NextNearPoint.IsWall
                                                  || NextNearPoint.NextNearPoint.IsDestroyableWall
                                                  || NextNearPoint.NextNearPoint.IsBomb
@@ -275,12 +343,15 @@ namespace Bomberman.Api
                                                  || NextNearPoint.NextNearPoint.IsOtherBombBomberman
                                                  || NextNearPoint.NextNearPoint.IsBombChopper))
                             result += Config.DangerRatingHigh;
+                        */
 
+                        /*
                         if (IsActCurrentMove && NextNearPoint.NextNearPoint.HasSideToEscape())
                             result -= Config.DangerRatingHigh;
+                        */
 
-                        if (NextNearPoint.NextNearPoint.IsBonus)
-                            result -= Config.DangerRatingLow;
+                        //if (NextNearPoint.NextNearPoint.IsBonus)
+                        //    result -= Config.DangerRatingLow;
 
                         if (NextNearPoint.NextNearPoint.IsZombieChopper)
                         {
@@ -305,7 +376,7 @@ namespace Bomberman.Api
             }
         }
 
-        private bool HasSideToEscape()
+        private bool HaveSideToEscape()
         {
             return _sidePoints.Any(x => Global.Board.IsAnyOfAt(x, Constants.MOVABLE_ELEMENTS));
         }
@@ -397,15 +468,16 @@ namespace Bomberman.Api
             }
         }
 
-        
 
 
+        /*
         public void InitAct(bool isActCurrentMove)
         {
             IsActCurrentMove = isActCurrentMove;
             if (NextNearPoint != null)
                 NextNearPoint.InitAct(isActCurrentMove);
         }
+        */
 
         public override string ToString()
         {

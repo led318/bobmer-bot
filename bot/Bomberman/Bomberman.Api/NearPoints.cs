@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Bomberman.Api.Infrastructure;
 
 namespace Bomberman.Api
 {
@@ -15,13 +16,17 @@ namespace Bomberman.Api
             new NearPoint(Direction.Left)
         };
 
+        public bool HaveMoreDestroyableWallsNear => Points.Any(x => x.HaveMoreDestroyableWalls);
+        
         public bool OnlyCriticalDangerPoints => Points.All(x => x.IsCriticalDanger);
 
+        /*
         public void InitActNearPoints(bool isActCurrentMove)
         {
             foreach (var nearPoint in Points)
                 nearPoint.InitAct(isActCurrentMove);
         }
+        */
 
         public IEnumerable<NearPoint> GetMinRatingPoints()
         {

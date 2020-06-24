@@ -18,4 +18,14 @@
         Left,
         Unknown
     }
+
+    public enum ActStrategy
+    {
+        DoNotAct,
+        ActThenMove,
+        MoveThenAct,
+        RCThenMove,
+        MoveThenRC,
+        ActThenStop,
+    }
 }

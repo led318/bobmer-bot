@@ -14,6 +14,9 @@ namespace Bomberman.Api
 
 
         public Point Point { get; set; }
+        public Element Element { get; set; }
+
+        public bool IsOnBomb => Element == Element.BOMB_BOMBERMAN;
 
 
 
@@ -21,7 +24,7 @@ namespace Bomberman.Api
         public int DestroyableWallsCount => Helper.GetDestroyableWallsCount(Point);
         public bool HaveDestroyableWallsNear => DestroyableWallsCount > 0;
 
-        public int DestroyableWallsNextStepCount => PreviousMove != null ? Helper.GetDestroyableWallsCount(PreviousMove.Point) : 0;
+        public int DestroyableWallsNextStepCount => HaveNextStep ? Helper.GetDestroyableWallsCount(NextStep.Point) : 0;
 
         public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsCount == 1
                                                         && DestroyableWallsCount < DestroyableWallsNextStepCount;
@@ -32,56 +35,83 @@ namespace Bomberman.Api
         public IEnumerable<Point> NearEnemies { get; private set; } = new List<Point>();
         public IEnumerable<Point> NearMeatChoppers { get; private set; } = new List<Point>();
 
+        public List<Point> NearZombies { get; private set; } = new List<Point>();
+
         public bool HaveDirectAfkTargetCurrentStep => Global.OtherBombermans.IsTargetAfk && Helper.HaveDirectAfkTarget(Point);
         public bool HaveDirectAfkTargetNextStep => Global.OtherBombermans.IsTargetAfk 
-                                                   && PreviousMove != null
-                                                   && Helper.HaveDirectAfkTarget(PreviousMove.Point);
+                                                   && Global.OtherBombermans.IsTargetLive
+                                                   && HaveNextStep
+                                                   && Helper.HaveDirectAfkTarget(NextStep.Point);
+
+        public bool HaveDirectAfkTarget(Point point)
+        {
+            return Global.OtherBombermans.IsTargetAfk
+                   && Helper.HaveDirectAfkTarget(point);
+        }
 
 
         public void InitNearEnemies()
         {
-            NearEnemies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ENEMIES_ELEMENTS);
-            NearEnemies = NearEnemies.Where(x => !Global.OtherBombermans.AfkOtherBombermans.Contains(x)).ToList();
+            //NearEnemies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ENEMIES_ELEMENTS);
+            var tempNearEnemies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ENEMIES_ELEMENTS);
+            NearEnemies = tempNearEnemies.Where(x => !Global.OtherBombermans.AfkOtherBombermans.Contains(x)).ToList();
 
             NearMeatChoppers = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Element.MEAT_CHOPPER);
+
+            NearZombies.Clear();
+
+            if (Global.HasPrevBoard)
+            {
+                var tempNearZombies = Global.Board.Get(Point, Config.EnemiesDetectionBreakpoint, Constants.ZOMBI_ELEMENTS);
+
+                foreach (var tempNearZombi in tempNearZombies)
+                {
+                    var prevStepCheck = Global.PrevBoard.CountNear(tempNearZombi, Constants.ZOMBI_ELEMENTS);
+
+                    if (prevStepCheck > 0)
+                        NearZombies.Add(tempNearZombi);
+                }
+            }
 
         }
 
         #endregion
 
         #region Move
-        private NearPoint _previousMove;
-        public NearPoint PreviousMove
+        private NearPoint _nextStep;
+        public NearPoint NextStep
         {
-            get { return _previousMove; }
+            get { return _nextStep; }
             set
             {
-                _previousMove = value;
+                _nextStep = value;
 
-                if (_previousMove != null)
+                if (_nextStep != null)
                 {
-                    if (_previousMove.IsBonusRC)
+                    if (_nextStep.IsBonusRC)
                         Bonuses.Add(new BonusRC());
 
-                    if (_previousMove.IsBonusBlast)
+                    if (_nextStep.IsBonusBlast)
                         Bonuses.Add(new BonusBlast());
 
-                    if (_previousMove.IsBonusImmune)
+                    if (_nextStep.IsBonusImmune)
                         Bonuses.Add(new BonusImmune());
 
-                    if (_previousMove.IsBonusCount)
+                    if (_nextStep.IsBonusCount)
                         Bonuses.Add(new BonusCount());
                 }
             }
         }
+
+        public bool HaveNextStep => NextStep != null;
         #endregion 
 
         #region MyBombs
         public List<Bomb> MyBombs { get; private set; } = new List<Bomb>();
-        public List<Bomb> MyRCBombs => MyBombs.Where(x => x.IsRc).ToList();
+        //public List<Bomb> MyRCBombs => MyBombs.Where(x => x.IsRc).ToList();
 
-        public List<Blast> MyFutureBlasts { get; private set; } = new List<Blast>();
-        public List<Blast> MyRCBombFutureBlasts { get; private set; } = new List<Blast>();
+        public List<Blast> MyBlasts { get; private set; } = new List<Blast>();
+        public List<Blast> MyRCBombBlasts { get; private set; } = new List<Blast>();
 
         public bool IsMyBombLive => MyBombs.Any();
         public bool IsMyBombRC => IsMyBombLive && MyBombs.Any(b => b.IsRc);
@@ -89,8 +119,18 @@ namespace Bomberman.Api
         private int _bombPlaceTimeout = 0;
         public void SetMyBomb()
         {
+            SetMyBombInternal(Point);
+        }
+
+        public void SetMyBombNextStep()
+        {
+            SetMyBombInternal(NextStep.Point);
+        }
+
+        private void SetMyBombInternal(Point point)
+        {
             _bombPlaceTimeout = Config.BombPlaceTimeout + 1;
-            MyBombs.Add(new Bomb(Point, true));
+            MyBombs.Add(new Bomb(point, true));
         }
 
         public void InitMyBombs()
@@ -106,11 +146,12 @@ namespace Bomberman.Api
 
         public void InitMyBlasts()
         {
-            MyFutureBlasts = Global.Blasts.GetMyBlasts();
-            MyRCBombFutureBlasts = MyFutureBlasts.Where(x => x.IsRC).ToList();
+            MyBlasts = Global.Blasts.GetMyBlasts();
+            MyRCBombBlasts = MyBlasts.Where(x => x.IsRC).ToList();
         }
 
-        private bool IsMeOnMyFirstRCBombBlast => PreviousMove != null && MyRCBombFutureBlasts.GetPoints().Contains(PreviousMove.Point);
+        public bool IsOnMyRC => MyRCBombBlasts.GetPoints().Contains(Point);
+        public bool IsOnMyRCNextStep => HaveNextStep && MyRCBombBlasts.GetPoints().Contains(NextStep.Point);
 
         #endregion
 
@@ -125,16 +166,19 @@ namespace Bomberman.Api
 
         #region Bonus
         //public bool IsBonusRC => IsBonusType(Element.BOMB_REMOTE_CONTROL); //wrong logic
-        public bool CanUseRC => IsMyBombRC && (!IsMeOnMyFirstRCBombBlast || IsBonusImmune);
+        //public bool CanUseRC => IsMyBombRC && (!IsOnMyRCNextStep || IsBonusImmune);
         private List<BonusRC> BonusesRC => Bonuses.Select(b => b as BonusRC).Where(b => b != null).OrderBy(b => b.UsesLeft).ToList();
+        
+        /*
         public void UseRC()
         {
-            Console.WriteLine("ACHTUNG!!! USE RC!!!!!!");
+            //Console.WriteLine("ACHTUNG!!! USE RC!!!!!!");
 
             var rcBonusToUse = BonusesRC.FirstOrDefault();
             if (rcBonusToUse != null)
                 rcBonusToUse.Use();
         }
+        */
 
         private bool IsBonusBlast => IsBonusType(Element.BOMB_BLAST_RADIUS_INCREASE);
         private int BonusBlastMultiplier => GetBonusTypeCount(Element.BOMB_BLAST_RADIUS_INCREASE);
@@ -186,13 +230,21 @@ namespace Bomberman.Api
 
         public bool HaveDirectBonus()
         {
-            if (PreviousMove == null)
-                return false;
+            return HaveDirectBonusOnPoint(Point);
+        }
 
+        public bool HaveDirectBonusNextStep()
+        {
+            return HaveNextStep && HaveDirectBonusOnPoint(NextStep.Point);
+        }
+
+
+        public bool HaveDirectBonusOnPoint(Point point)
+        {
             var result = new List<Point>();
             var blastSize = MyBombsForSearchPower;
 
-            var startPoint = Point;
+            var startPoint = point;
 
             CheckDirectBonus(result, startPoint, blastSize, p => p.ShiftTop());
             CheckDirectBonus(result, startPoint, blastSize, p => p.ShiftRight());
@@ -263,7 +315,8 @@ namespace Bomberman.Api
             Console.WriteLine($"bombs max count: {MaxBombsCount}, {BonusCountDuration}s");
             Console.WriteLine($"immune: {IsBonusImmune}, {BonusImmuneDuration}s");
             Console.WriteLine($"rc: {IsMyBombRC}");
-            Console.WriteLine($"is on my first rc: {IsMeOnMyFirstRCBombBlast}");
+            Console.WriteLine($"is on my rc: {IsOnMyRC}");
+            Console.WriteLine($"is on my rc next step: {IsOnMyRCNextStep}");
             Console.WriteLine("direct afk this step: " + HaveDirectAfkTargetCurrentStep);
             Console.WriteLine("direct afk next step: " + HaveDirectAfkTargetNextStep);
             //Console.WriteLine("my bomb rc: " + IsMyBombRC);

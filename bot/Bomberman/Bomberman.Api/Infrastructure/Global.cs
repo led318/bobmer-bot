@@ -36,7 +36,7 @@ namespace Bomberman.Api.Infrastructure
 
         public bool IsMyRC => IsRC && IsMy;
         public bool IsMyNextStep => IsNextStep && IsMy;
-        public bool IsMyToIgnore => IsMy && TicksLeft >= 2;
+        public bool IsMyToIgnore => IsMy && !IsRC && TicksLeft >= 2;
 
 
         public bool IsEnemy => !IsMy;

@@ -62,7 +62,7 @@ namespace Bomberman.Api
         {
             return Get(Element.OTHER_BOMBERMAN)
                 .Concat(Get(Element.OTHER_BOMB_BOMBERMAN))
-                .Concat(Get(Element.OTHER_DEAD_BOMBERMAN))
+                //.Concat(Get(Element.OTHER_DEAD_BOMBERMAN))
                 .OrderBy(a => a.X)
                 .ThenBy(a => a.Y)
                 .ToList();
@@ -93,6 +93,16 @@ namespace Bomberman.Api
             }
 
             return GetAt(point) == element;
+        }
+
+        public bool IsAt(Point point, IEnumerable<Element> elements)
+        {
+            if (point.IsOutOf(Size))
+            {
+                return false;
+            }
+
+            return elements.Contains(GetAt(point));
         }
 
         public string BoardAsString()
@@ -199,15 +209,15 @@ namespace Bomberman.Api
             return result;
         }
 
-        public List<Point> Get(Point point, int size, params Element[] elements)
+        public List<Point> Get(Point startPoint, int size, params Element[] elements)
         {
-            var topLeft = point.ShiftLeft(size).ShiftTop(size);
-            var bottomRight = point.ShiftRight(size).ShiftBottom(size);
+            var topLeft = startPoint.ShiftLeft(size).ShiftTop(size);
+            var bottomRight = startPoint.ShiftRight(size).ShiftBottom(size);
 
-            return Get(topLeft, bottomRight, elements);
+            return Get(startPoint, size, topLeft, bottomRight, elements);
         }
 
-        public List<Point> Get(Point topLeft, Point bottomRight, params Element[] elements)
+        public List<Point> Get(Point startPoint, int size, Point topLeft, Point bottomRight, params Element[] elements)
         {
             List<Point> result = new List<Point>();
 
@@ -219,8 +229,15 @@ namespace Bomberman.Api
             }
 
             result = result.Where(a => a.X >= topLeft.X && a.Y <= topLeft.Y).ToList();
-
             result = result.Where(a => a.X <= bottomRight.X && a.Y >= bottomRight.Y).ToList();
+
+            result = result.Where(a =>
+            {
+                var deltaX = Math.Abs(startPoint.X - a.X);
+                var deltaY = Math.Abs(startPoint.Y - a.Y);
+
+                return deltaX != size && deltaY != size;
+            }).ToList();
 
             return result
                 .OrderBy(a => a.X)
@@ -400,6 +417,19 @@ namespace Bomberman.Api
             if (IsAt(point.ShiftRight(), element)) count++;
             if (IsAt(point.ShiftTop(), element)) count++;
             if (IsAt(point.ShiftBottom(), element)) count++;
+            return count;
+        }
+
+        public int CountNear(Point point, IEnumerable<Element> elements)
+        {
+            if (point.IsOutOf(Size))
+                return 0;
+
+            int count = 0;
+            if (IsAt(point.ShiftLeft(), elements)) count++;
+            if (IsAt(point.ShiftRight(), elements)) count++;
+            if (IsAt(point.ShiftTop(), elements)) count++;
+            if (IsAt(point.ShiftBottom(), elements)) count++;
             return count;
         }
     }
