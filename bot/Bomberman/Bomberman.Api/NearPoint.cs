@@ -273,8 +273,8 @@ namespace Bomberman.Api
                 //if (Helper.HaveDirectAfkTarget(Point))
                 //    result -= Config.DangerRatingMedium;
 
-                if (Helper.HaveNearAfkTarget(Point))
-                    result -= Config.DangerRatingMedium;
+                //if (Helper.HaveNearAfkTarget(Point))
+                //    result -= Config.DangerRatingMedium;
 
                 if (NextNearPoint != null)
                 {
@@ -324,8 +324,8 @@ namespace Bomberman.Api
                     //if (Helper.HaveDirectAfkTarget(NextNearPoint.Point))
                     //    result -= Config.DangerRatingLow;
 
-                    if (Helper.HaveNearAfkTarget(NextNearPoint.Point))
-                        result -= Config.DangerRatingLow;
+                    //if (Helper.HaveNearAfkTarget(NextNearPoint.Point))
+                    //    result -= Config.DangerRatingLow;
 
                     //if (IsActCurrentMove && NextNearPoint.HasSideToEscape())
                     //    result -= Config.DangerRatingHigh;
