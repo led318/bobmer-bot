@@ -41,6 +41,7 @@ namespace Demo
             Global.NearPoints = new NearPoints();
             Global.OtherBombermans = new OtherBombermans();
             Global.Choppers = new Choppers();
+            Global.Blasts = new Blasts();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -124,14 +125,17 @@ namespace Demo
                 }
 
                 Global.Me.InitNearEnemies();
-                Global.Me.CheckMyBombs();
+                Global.Me.InitMyBombs();
+                Global.Blasts.Init();
+                Global.Me.InitMyBlasts();
+                //Console.WriteLine("next step blasts: " + Global.Blasts.AllBlasts.Where(x => x.IsNextStep).Count());
+
                 Global.NearPoints.Init();
                 Global.Me.PrintStatus();
 
                 CalculateActCurrentMove();
 
                 Console.WriteLine(Global.NearPoints.GetPrintStr());
-
                 CalculateAvailableDirection();
                 CheckUseRC();
 
@@ -210,9 +214,11 @@ namespace Demo
             _isActCurrentMove = false;
 
 
-            if (Global.Me.CanPlaceBombs)
+            if (Global.Me.CanPlaceBombs && !Global.Me.IsMyBombRC)
             {
-                if (Global.Me.HaveDirectAfkTargetCurrentStep || Global.Me.NearEnemies.Any() || Global.Me.HaveDestroyableWallsNear)
+                if (Global.Me.HaveDirectAfkTargetCurrentStep 
+                    || Global.Me.NearEnemies.Any() 
+                    || Global.Me.HaveDestroyableWallsNear)
                 {
                     ActCurrentMove();
                 }

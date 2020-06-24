@@ -175,7 +175,7 @@ namespace Bomberman.Api
             var maxPossibility = BoardPoints.Max(x => x.ChopperPossibility);
             var maxPossibilityPoints = BoardPoints.Where(x => x.ChopperPossibility == maxPossibility).ToList();
 
-            var possibility = maxPossibilityPoints.Count > 1 ? 50 : 69;
+            var possibility = maxPossibilityPoints.Count > 1 ? 30 : 50;
 
             foreach (var maxPossibilityPoint in maxPossibilityPoints)
             {

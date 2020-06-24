@@ -346,7 +346,7 @@ namespace Bomberman.Api
                 CalculateFutureBlasts(result, bomb, b => b.ShiftLeft(), bombPower);
             }
 
-            return result.Where(blast => !blast.IsOutOf(Size) && !GetWalls().Contains(blast)).Distinct()
+            return result.Where(blast => !blast.IsOutOf(Size) && !GetWalls().Contains(blast))
                 .OrderBy(a => a.X)
                 .ThenBy(a => a.Y)
                 .ToList();

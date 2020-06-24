@@ -18,46 +18,13 @@ namespace Bomberman.Api
 
 
         #region Destroyable Walls
-        public int DestroyableWallsNearCount => GetPointDestroyableWalls(Point).Count();
-        public bool HaveDestroyableWallsNear => DestroyableWallsNearCount > 0;
+        public int DestroyableWallsCount => Helper.GetDestroyableWallsCount(Point);
+        public bool HaveDestroyableWallsNear => DestroyableWallsCount > 0;
 
-        public int DestroyableWallsNextStepCount => PreviousMove != null ? GetPointDestroyableWalls(PreviousMove.Point).Count() : 0;
-        public bool HaveDestroyableWallsNextStep => DestroyableWallsNextStepCount > 0;
+        public int DestroyableWallsNextStepCount => PreviousMove != null ? Helper.GetDestroyableWallsCount(PreviousMove.Point) : 0;
 
-        //public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsNearCount == 1
-        //    && DestroyableWallsNearCount < DestroyableWallsNextStepCount;
-
-        public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsNearCount < DestroyableWallsNextStepCount;
-
-        public List<Point> GetPointDestroyableWalls(Point point, bool currentStep = true) 
-        {
-            var result = new List<Point>();
-
-            var blastSize = currentStep ? MyBombsForSearchPower : MyBombsForSearchPower;
-
-            CheckIfIsDestroyableWall(result, point, blastSize, p => p.ShiftTop());
-            CheckIfIsDestroyableWall(result, point, blastSize, p => p.ShiftRight());
-            CheckIfIsDestroyableWall(result, point, blastSize, p => p.ShiftBottom());
-            CheckIfIsDestroyableWall(result, point, blastSize, p => p.ShiftLeft());
-
-            return result;
-        }
-
-        private void CheckIfIsDestroyableWall(List<Point> result, Point point, int blastSize, Func<Point, Point> func)
-        {
-            var pointToCheck = point;
-
-            for (var i = 0; i < blastSize; i++)
-            {
-                pointToCheck = func(pointToCheck);
-                if (Global.Board.IsAt(pointToCheck, Element.WALL))
-                    return;
-
-                if (Global.Board.IsAt(pointToCheck, Element.DESTROYABLE_WALL))
-                    result.Add(pointToCheck);
-            }
-        }
-
+        public bool HaveMoreDestroyableWallsNextStep => DestroyableWallsCount == 1
+                                                        && DestroyableWallsCount < DestroyableWallsNextStepCount;
 
         #endregion
 
@@ -65,43 +32,11 @@ namespace Bomberman.Api
         public IEnumerable<Point> NearEnemies { get; private set; } = new List<Point>();
         public IEnumerable<Point> NearMeatChoppers { get; private set; } = new List<Point>();
 
-        public bool HaveDirectAfkTargetCurrentStep => Global.OtherBombermans.IsTargetAfk && HaveDirectAfkTarget(true);
-        public bool HaveDirectAfkTargetNextStep => Global.OtherBombermans.IsTargetAfk && HaveDirectAfkTarget(false);
+        public bool HaveDirectAfkTargetCurrentStep => Global.OtherBombermans.IsTargetAfk && Helper.HaveDirectAfkTarget(Point);
+        public bool HaveDirectAfkTargetNextStep => Global.OtherBombermans.IsTargetAfk 
+                                                   && PreviousMove != null
+                                                   && Helper.HaveDirectAfkTarget(PreviousMove.Point);
 
-        private bool HaveDirectAfkTarget(bool currentStep = true)
-        {
-            var result = new List<Point>();
-            var searchPoint = Global.OtherBombermans.Target;
-            var blastSize = currentStep ? MyBombsForSearchPower : MyBombsForSearchPower;
-
-            if (!currentStep && PreviousMove == null)
-                return false;
-
-            var startPoint = currentStep ? Point : PreviousMove.Point;
-
-            CheckDirectAfkTarget(result, startPoint, searchPoint, blastSize, p => p.ShiftTop());
-            CheckDirectAfkTarget(result, startPoint, searchPoint, blastSize, p => p.ShiftRight());
-            CheckDirectAfkTarget(result, startPoint, searchPoint, blastSize, p => p.ShiftBottom());
-            CheckDirectAfkTarget(result, startPoint, searchPoint, blastSize, p => p.ShiftLeft());
-
-            return result.Any();
-        }
-
-        private void CheckDirectAfkTarget(List<Point> result, Point startPoint, Point searchPoint, int blastSize, Func<Point, Point> func)
-        {
-            var pointToCheck = startPoint;
-
-            for (var i = 0; i < blastSize; i++)
-            {
-                pointToCheck = func(pointToCheck);
-
-                if (Global.Board.IsAnyOfAt(pointToCheck, Constants.WALL_ELEMENTS))
-                    return;
-
-                if (pointToCheck.Equals(searchPoint))
-                    result.Add(pointToCheck);
-            }
-        }
 
         public void InitNearEnemies()
         {
@@ -145,8 +80,8 @@ namespace Bomberman.Api
         public List<Bomb> MyBombs { get; private set; } = new List<Bomb>();
         public List<Bomb> MyRCBombs => MyBombs.Where(x => x.IsRc).ToList();
 
-        public List<Point> MyFutureBlasts { get; private set; } = new List<Point>();
-        public List<Point> MyFirstRCBombFutureBlasts { get; private set; } = new List<Point>();
+        public List<Blast> MyFutureBlasts { get; private set; } = new List<Blast>();
+        public List<Blast> MyRCBombFutureBlasts { get; private set; } = new List<Blast>();
 
         public bool IsMyBombLive => MyBombs.Any();
         public bool IsMyBombRC => IsMyBombLive && MyBombs.Any(b => b.IsRc);
@@ -158,7 +93,7 @@ namespace Bomberman.Api
             MyBombs.Add(new Bomb(Point, true));
         }
 
-        public void CheckMyBombs()
+        public void InitMyBombs()
         {
             var allBombs = Global.Board.GetBombs();
             MyBombs = MyBombs.Where(b => allBombs.Contains(b.Point)).ToList();
@@ -166,15 +101,16 @@ namespace Bomberman.Api
                 myBomb.Init();
             }
 
-            MyFutureBlasts = Global.Board.GetFutureBlastsForBombs(MyBombs.GetPoints());
+            
+        }
 
-            var myFirstRCBomb = MyBombs.FirstOrDefault(b => b.IsRc);
-            MyFirstRCBombFutureBlasts = myFirstRCBomb != null
-                ? Global.Board.GetFutureBlastsForBombs(myFirstRCBomb.Point, MyBombsPower)
-                : new List<Point>();
-        }        
+        public void InitMyBlasts()
+        {
+            MyFutureBlasts = Global.Blasts.GetMyBlasts();
+            MyRCBombFutureBlasts = MyFutureBlasts.Where(x => x.IsRC).ToList();
+        }
 
-        private bool IsMeOnMyFirstRCBombBlast => PreviousMove != null && MyFirstRCBombFutureBlasts.Contains(PreviousMove.Point);
+        private bool IsMeOnMyFirstRCBombBlast => PreviousMove != null && MyRCBombFutureBlasts.GetPoints().Contains(PreviousMove.Point);
 
         #endregion
 
@@ -221,7 +157,7 @@ namespace Bomberman.Api
         public int BonusImmuneDuration => GetBonusMaxDuration(Element.BOMB_IMMUNE);
 
         private bool IsBonusCount => IsBonusType(Element.BOMB_COUNT_INCREASE);
-        private int BonusCountMultiplier => GetBonusTypeCount(Element.BOMB_COUNT_INCREASE) > 0 ? 1 :0;
+        private int BonusCountMultiplier => GetBonusTypeCount(Element.BOMB_COUNT_INCREASE);
         private int BonusCountDuration => GetBonusMaxDuration(Element.BOMB_COUNT_INCREASE);
 
         private List<Bonus> Bonuses = new List<Bonus>();
@@ -328,8 +264,8 @@ namespace Bomberman.Api
             Console.WriteLine($"immune: {IsBonusImmune}, {BonusImmuneDuration}s");
             Console.WriteLine($"rc: {IsMyBombRC}");
             Console.WriteLine($"is on my first rc: {IsMeOnMyFirstRCBombBlast}");
-            Console.WriteLine("direct afk this step: " + HaveDirectAfkTarget(true));
-            Console.WriteLine("direct afk next step: " + HaveDirectAfkTarget(false));
+            Console.WriteLine("direct afk this step: " + HaveDirectAfkTargetCurrentStep);
+            Console.WriteLine("direct afk next step: " + HaveDirectAfkTargetNextStep);
             //Console.WriteLine("my bomb rc: " + IsMyBombRC);
             //Console.WriteLine("my bombs" + Newtonsoft.Json.JsonConvert.SerializeObject(MyBombs));
             //Console.WriteLine("destroyable walls: " + DestroyableWallsNearCount);

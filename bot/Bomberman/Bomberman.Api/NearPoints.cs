@@ -37,8 +37,13 @@ namespace Bomberman.Api
 
         private string RatingStr(NearPoint nearPoint)
         {
+            if (nearPoint.IsCriticalDanger)
+                return $"*{nearPoint.Rating,2}*";
 
-            return nearPoint.IsCriticalDanger ? $"*{nearPoint.Rating,2}*" : $" {nearPoint.Rating,2} ";
+            if (nearPoint.IsMyFutureBlastToIgnore)
+                return $"-{nearPoint.Rating,2}-";
+
+            return $" {nearPoint.Rating,2} ";
         }
 
         public string GetPrintStr()
