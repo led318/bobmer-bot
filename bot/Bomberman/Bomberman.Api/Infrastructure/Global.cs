@@ -61,8 +61,7 @@ namespace Bomberman.Api.Infrastructure
 
         public void Init()
         {
-            if (Global.HasPrevBoard)
-                PrevElement = Global.PrevBoard.GetAt(Point);
+            PrevElement = Global.HasPrevBoard ? Global.PrevBoard.GetAt(Point) : Element.DUMMY;
 
             TicksLeft = GetTicksLeftForElement(Element);
             IsRC = Element == Element.BOMB_TIMER_5 || PrevElement == Element.BOMB_TIMER_5;
