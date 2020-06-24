@@ -54,7 +54,7 @@ namespace Demo
         private List<Direction> _currentMoves = new List<Direction>();
         //private bool _isActCurrentMove;
         private ActStrategy? _actStrategy = null;
-        private bool _threadSleepOnAct = true;
+        private bool _threadSleepOnAct = false;
 
         /// <summary>
         /// Calls each move to make decision what to do (next move)
