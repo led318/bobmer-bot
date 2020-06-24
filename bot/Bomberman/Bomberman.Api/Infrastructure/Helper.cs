@@ -79,6 +79,13 @@ namespace Bomberman.Api
             return result.Any();
         }
 
+        public static bool HaveNearAfkTarget(Point startPoint)
+        {
+            var searchPoint = Global.OtherBombermans.Target;
+
+            return startPoint.IsNear(searchPoint);
+        }
+
         private static void CheckDirectAfkTarget(List<Point> result, Point startPoint, Point searchPoint, int blastSize, Func<Point, Point> func)
         {
             var pointToCheck = startPoint;

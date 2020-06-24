@@ -258,17 +258,23 @@ namespace Bomberman.Api
                 //    result -= Config.DangerRatingHigh;
                 //}
 
-                if (IsDangerForActThenMove)
-                    result += Config.DangerRatingCritical;
+
 
                 //if (Global.Me.IsOnBomb && IsDangerForActThenMove && !IsSafeForActThenMove)
                 //    result += Config.DangerRatingCritical;
 
-                if (IsDangerForActThenMove && IsSafeForActThenMove)
-                    result -= Config.DangerRatingCritical;
+                //todo: maybe enable this if have issues with dead ends
+                if (IsDangerForActThenMove)
+                    result += Config.DangerRatingHigh;
 
-                if (Helper.HaveDirectAfkTarget(Point))
-                    result -= Config.DangerRatingMedium;
+                if (IsDangerForActThenMove && IsSafeForActThenMove)
+                    result -= (Config.DangerRatingMedium + Config.DangerRatingLow);
+
+                //if (Helper.HaveDirectAfkTarget(Point))
+                //    result -= Config.DangerRatingMedium;
+
+                if (Helper.HaveNearAfkTarget(Point))
+                    result -= Config.DangerRatingHigh;
 
                 if (NextNearPoint != null)
                 {
@@ -317,6 +323,9 @@ namespace Bomberman.Api
 
                     //if (Helper.HaveDirectAfkTarget(NextNearPoint.Point))
                     //    result -= Config.DangerRatingLow;
+
+                    if (Helper.HaveNearAfkTarget(NextNearPoint.Point))
+                        result -= Config.DangerRatingLow;
 
                     //if (IsActCurrentMove && NextNearPoint.HasSideToEscape())
                     //    result -= Config.DangerRatingHigh;

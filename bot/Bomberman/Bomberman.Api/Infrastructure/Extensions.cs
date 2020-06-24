@@ -25,5 +25,13 @@ namespace Bomberman.Api
             if (itemToRemove != null)
                 list.Remove(itemToRemove);
         }
+
+        public static bool IsNear(this Point startPoint, Point point)
+        {
+            return startPoint.ShiftTop().Equals(point) ||
+                   startPoint.ShiftRight().Equals(point) ||
+                   startPoint.ShiftBottom().Equals(point) ||
+                   startPoint.ShiftLeft().Equals(point);
+        }
     }
 }
