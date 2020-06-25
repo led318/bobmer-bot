@@ -64,7 +64,7 @@ namespace Bomberman.Api.Infrastructure
             PrevElement = Global.HasPrevBoard ? Global.PrevBoard.GetAt(Point) : Element.DUMMY;
 
             TicksLeft = GetTicksLeftForElement(Element);
-            IsRC = Element == Element.BOMB_TIMER_5 || PrevElement == Element.BOMB_TIMER_5;
+            IsRC = Element == Constants.RC_BOMB_ELEMENT || PrevElement == Constants.RC_BOMB_ELEMENT;
             IsNextStep = Element == Element.BOMB_TIMER_1 || PrevElement == Element.BOMB_TIMER_2;
 
             if (!TicksLeft.HasValue && Global.HasPrevBoard)
@@ -104,6 +104,7 @@ namespace Bomberman.Api.Infrastructure
     public class Blasts
     {
         public List<Blast> AllBlasts { get; set; } = new List<Blast>();
+        public List<Blast> NotBonusBlasts => AllBlasts.Where(x => !x.IsBonus).ToList();
 
         public bool IsFutureBlast(Point point)
         {
@@ -173,7 +174,8 @@ namespace Bomberman.Api.Infrastructure
                     AllBlasts.Add(blast);
                 }
 
-                var bonusBlastPointsAll = Global.Board.GetFutureBlastsForBombs(enemyBombPoint, Config.BombsDefaultPower + Config.BonusBlastIncrease);
+                var bonusBombPower = Config.BombsDefaultPower + Config.BonusBlastIncrease;
+                var bonusBlastPointsAll = Global.Board.GetFutureBlastsForBombs(enemyBombPoint, bonusBombPower);
                 var bonusBlastPoints = bonusBlastPointsAll.Where(x => !blastPoints.Contains(x)).ToList();
 
                 foreach (var bonusBlastPoint in bonusBlastPoints)

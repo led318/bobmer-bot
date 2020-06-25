@@ -22,8 +22,8 @@ namespace BobmermanParser
 
         static void Main(string[] args)
         {
-            var onlyGenerateCsv = true;
-            var getNewData = false;
+            var onlyGenerateCsv = false;
+            var getNewData = true;
 
             while (true)
             {
@@ -70,6 +70,7 @@ namespace BobmermanParser
                     }
                 }
 
+                /*
                 var orderedDict = jsonDict.Values
                     .ToList()
                     .Where(x => x[0].Id != myId && x[0].Id != myId1)
@@ -89,7 +90,7 @@ namespace BobmermanParser
 
                     streamWriter.Write(GenerateScoresLine(jsonDict, myId, myId1, top0, top1, top2, top3));
                 }
-                
+                */
 
                 Console.WriteLine($"{DateTime.Now.ToLongTimeString()} processed");
 

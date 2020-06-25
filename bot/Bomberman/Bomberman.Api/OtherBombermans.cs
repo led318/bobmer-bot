@@ -34,9 +34,10 @@ namespace Bomberman.Api
             if (CalculateSuicide())
                 return true;
 
-            if (AfkOtherBombermans.Any())
+            var afkNotAtBlast = GetNotAtBlast(AfkOtherBombermans);
+            if (afkNotAtBlast.Any())
             {
-                CalculateTargetBomberman(AfkOtherBombermans);
+                CalculateTargetBomberman(afkNotAtBlast);
                 Console.WriteLine("target: " + Target + " AFK");
             }
             else if (Bombermans.Any())
@@ -46,6 +47,15 @@ namespace Bomberman.Api
             }
 
             return false;
+        }
+
+        private List<Point> GetNotAtBlast(List<Point> bombermans)
+        {
+            var allBlastPoints = Global.Blasts.NotBonusBlasts.GetPoints();
+
+            var result = bombermans.Where(x => !allBlastPoints.Contains(x)).ToList();
+
+            return result;
         }
 
         private void CalculateAfk()
@@ -102,6 +112,8 @@ namespace Bomberman.Api
 
         private void CalculateTargetBomberman(List<Point> bombermans)
         {
+
+
             Target = Helper.GetNearest(Global.Me.Point, bombermans).FirstOrDefault();
         }
     }
