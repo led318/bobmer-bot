@@ -94,8 +94,6 @@ namespace Bomberman.Api
 
         private bool CalculateSuicide()
         {
-            //Console.WriteLine("suicide points: " + Global.Me.SuicidePoints);
-
             if (Bombermans.Count == 1 || Global.Me.SuicidePoints > 0)
             {
                 Global.Me.SuicidePoints++;
@@ -112,8 +110,6 @@ namespace Bomberman.Api
 
         private void CalculateTargetBomberman(List<Point> bombermans)
         {
-
-
             Target = Helper.GetNearest(Global.Me.Point, bombermans).FirstOrDefault();
         }
     }

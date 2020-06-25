@@ -52,7 +52,6 @@ namespace Demo
 
         private Direction _currentDirection = Direction.Up;
         private List<Direction> _currentMoves = new List<Direction>();
-        //private bool _isActCurrentMove;
         private ActStrategy? _actStrategy = null;
         private bool _threadSleepOnAct = false;
 
@@ -143,8 +142,6 @@ namespace Demo
                 CalculateAvailableDirection();
 
                 CalculateActStrategy();
-                //Global.NearPoints.InitActNearPoints(_isActCurrentMove);
-
 
                 if (!Global.HasManualMove)
                 {
@@ -218,7 +215,6 @@ namespace Demo
 
         private void CalculateActStrategy()
         {
-            //_isActCurrentMove = false;
             _actStrategy = null;
 
             if (Global.Me.CanPlaceBombs && !Global.Me.IsMyBombRC)
@@ -311,7 +307,7 @@ namespace Demo
             if (Global.NearPoints.OnlyCriticalDangerPoints)
             {
                 SetCurrentDirection();
-                WriteStopLog();
+                //WriteStopLog();
 
                 return;
             }
@@ -337,6 +333,7 @@ namespace Demo
             Global.Me.NextStep = nearPoint;
         }
 
+        /*
         private void WriteStopLog()
         {
             try
@@ -371,5 +368,6 @@ namespace Demo
                 Console.WriteLine("something wrong with stop log: " + ex.Message);
             }
         }
+        */
     }
 }

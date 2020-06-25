@@ -145,8 +145,6 @@ namespace Bomberman.Api
             foreach (var myBomb in MyBombs) {
                 myBomb.Init();
             }
-
-            
         }
 
         public void InitMyBlasts()
@@ -170,21 +168,8 @@ namespace Bomberman.Api
         #endregion
 
         #region Bonus
-        //public bool IsBonusRC => IsBonusType(Element.BOMB_REMOTE_CONTROL); //wrong logic
-        //public bool CanUseRC => IsMyBombRC && (!IsOnMyRCNextStep || IsBonusImmune);
         private List<BonusRC> BonusesRC => Bonuses.Select(b => b as BonusRC).Where(b => b != null).OrderBy(b => b.UsesLeft).ToList();
         
-        /*
-        public void UseRC()
-        {
-            //Console.WriteLine("ACHTUNG!!! USE RC!!!!!!");
-
-            var rcBonusToUse = BonusesRC.FirstOrDefault();
-            if (rcBonusToUse != null)
-                rcBonusToUse.Use();
-        }
-        */
-
         private bool IsBonusBlast => IsBonusType(Element.BOMB_BLAST_RADIUS_INCREASE);
         private int BonusBlastMultiplier => GetBonusTypeCount(Element.BOMB_BLAST_RADIUS_INCREASE);
         private int BonusBlastForSearchMultiplier
