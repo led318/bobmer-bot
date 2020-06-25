@@ -342,8 +342,8 @@ namespace Bomberman.Api
                     if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlast)
                         result += Config.DangerRatingMedium;
 
-                    if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlastNextStep)
-                        result += Config.DangerRatingMedium;
+                    //if (!Global.Me.IsBonusImmune && NextNearPoint.IsFutureBlastNextStep)
+                    //    result += Config.DangerRatingMedium;
 
                     if (!Global.Me.IsBonusImmune && NextNearPoint.IsBonusRCBlastNextStep)
                         result += Config.DangerRatingMedium;

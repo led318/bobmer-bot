@@ -245,9 +245,9 @@ namespace Demo
 
                 //if (Global.Me.HaveNextStep && Global.Me.NextStep.HaveMoreDestroyableWalls && !Global.Me.NextStep.IsDangerForActThenMove && !Global.Me.HaveDirectBonusNextStep())
                 if (Global.Me.HaveNextStep 
-                    && Global.Me.NextStep.HaveMoreDestroyableWalls 
-                    && !Global.Me.NextStep.IsDangerForActThenMove 
-                    && !Global.Me.HaveDirectBonusNextStep())
+                    && Global.Me.NextStep.HaveMoreDestroyableWalls
+                    && !Global.Me.HaveDirectBonusNextStep()
+                    && !Global.Me.NextStepIsDangerForMove)
                 {
                     _actStrategy = ActStrategy.MoveThenAct;
                     Console.WriteLine("MoveThenAct, next step more walls");
