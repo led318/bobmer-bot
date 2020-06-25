@@ -115,11 +115,16 @@ namespace Bomberman.Api
 
         public bool IsMyBombLive => MyBombs.Any();
         public bool IsMyBombRC => IsMyBombLive && MyBombs.Any(b => b.IsRc);
-        public bool CanPlaceBombs => MyBombs.Count() < MaxBombsCount && _bombPlaceTimeout == 0;
-        private int _bombPlaceTimeout = 0;
+        public bool CanPlaceBombs => MyBombs.Count() < MaxBombsCount && BombPlaceTimeout == 0;
+        public int BombPlaceTimeout = 1;
         public void SetMyBomb()
         {
             SetMyBombInternal(Point);
+        }
+
+        public void ResetBombPlaceTimeout()
+        {
+            BombPlaceTimeout = Config.BombPlaceTimeout + 1;
         }
 
         public void SetMyBombNextStep()
@@ -129,7 +134,7 @@ namespace Bomberman.Api
 
         private void SetMyBombInternal(Point point)
         {
-            _bombPlaceTimeout = Config.BombPlaceTimeout + 1;
+            ResetBombPlaceTimeout();
             MyBombs.Add(new Bomb(point, true));
         }
 
@@ -276,6 +281,7 @@ namespace Bomberman.Api
         {
             SuicidePoints = 0;
             Bonuses.Clear();
+            ResetBombPlaceTimeout();
         }
 
         public void Tick()
@@ -304,8 +310,8 @@ namespace Bomberman.Api
 
             //Bonuses = Bonuses.Where(b => b.IsActive).ToList();
 
-            if (_bombPlaceTimeout > 0)
-                _bombPlaceTimeout--;
+            if (BombPlaceTimeout > 0)
+                BombPlaceTimeout--;
         }
 
         public void PrintStatus()
