@@ -77,8 +77,8 @@ namespace Bomberman.Api
         public bool IsChopper => Element == Element.MEAT_CHOPPER;
         public bool IsBombChopper => IsChopper && Global.HasPrevBoard && Global.PrevBoard.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS);
 
-        public bool IsZombieChopper => Element == Element.DeadMeatChopper;
-        public bool IsNearZombieChopper => Global.Board.IsNear(Point, Element.DeadMeatChopper);
+        public bool IsZombieChopper => Global.Me.NearZombies.Any(x => x.Equals(Point));
+        public bool IsNearZombieChopper => Global.Me.NearZombies.Any(x => Point.IsNear(x));
 
         public bool IsOtherBomberman => Constants.OTHER_BOMBERMANS_ELEMENTS.Contains(Element);
         public bool IsOtherBombBomberman => Element == Element.OTHER_BOMB_BOMBERMAN;
@@ -198,15 +198,16 @@ namespace Bomberman.Api
                 if (NearChopperPossibility > 60)
                     return true;
 
-                if (!IsCrossRoad && MinPointBlastTicks == 1)
-                    return true;
-
                 if (NextNearPoint != null)
                 {
                     if (NextNearPoint.IsOtherBombBomberman)
                         return true;
 
                     if (NextNearPoint.IsNearZombieChopper)
+                        return true;
+
+                    // avoid dead-ends
+                    if (!IsCrossRoad && MinPointBlastTicks == 1 && !NextNearPoint.IsEmpty)
                         return true;
                 }
 
@@ -303,17 +304,19 @@ namespace Bomberman.Api
                 //    result += Config.DangerRatingCritical;
 
                 //todo: maybe enable this if have issues with dead ends
-                if (IsDangerForActThenMove)
+                if (IsDangerForActThenMove && !IsSafeForActThenMove)
                     result += Config.DangerRatingHigh;
 
-                if (IsLessDangerForActThenMove)
+                //if (IsDangerForActThenMove && IsSafeForActThenMove)
+                //    result -= Config.DangerRatingHigh;
+
+                if (IsLessDangerForActThenMove && !IsSafeForActThenMove)
                     result += Config.DangerRatingMedium;
 
-                if (IsDangerForActThenMove && IsSafeForActThenMove)
-                    result -= (Config.DangerRatingMedium + Config.DangerRatingLow);
-
+                //todo: try to fix issue with loops
                 //if (IsLessDangerForActThenMove && IsSafeForActThenMove)
-                //    result -= Config.DangerRatingLow;
+                //    result -= Config.DangerRatingMedium;
+
 
                 //if (Helper.HaveDirectAfkTarget(Point))
                 //    result -= Config.DangerRatingMedium;
@@ -323,8 +326,9 @@ namespace Bomberman.Api
 
                 if (NextNearPoint != null)
                 {
-                    if (!NextNearPoint.IsEmpty)
-                        result += Config.DangerRatingLow;
+                    //todo: try to fix loops in the *near-border* areas
+                    //if (!NextNearPoint.IsEmpty)
+                    //    result += Config.DangerRatingLow;
 
                     if (NextNearPoint.IsBomb)
                         result += Config.DangerRatingMedium;
@@ -344,6 +348,7 @@ namespace Bomberman.Api
                     if (!Global.Me.IsBonusImmune && NextNearPoint.IsBonusRCBlastNextStep)
                         result += Config.DangerRatingMedium;
 
+                    // kamikadze
                     if (NextNearPoint.IsOtherBombBomberman)
                     {
                         result += Config.DangerRatingCritical;
@@ -351,7 +356,7 @@ namespace Bomberman.Api
 
                     if (NextNearPoint.IsZombieChopper)
                     {
-                        result += Config.DangerRatingHigh;
+                        result += Config.DangerRatingCritical;
                         // Console.WriteLine("ZOMBIE!!! +1");
                     }
 
@@ -436,14 +441,14 @@ namespace Bomberman.Api
                         if (NextNearPoint.NextNearPoint.IsChopper)
                             result += Config.DangerRatingMedium;
 
-                        if (NextNearPoint.NextNearPoint.IsDestroyedWall)
-                        {
-                            result += Config.DangerRatingLow;
-                        }
+                        //if (NextNearPoint.NextNearPoint.IsDestroyedWall)
+                        //{
+                        //    result += Config.DangerRatingLow;
+                        //}
 
                         if (!Global.Me.IsBonusImmune && NextNearPoint.NextNearPoint.IsFutureBlast)
                         {
-                            result += Config.DangerRatingMedium;
+                            result += Config.DangerRatingLow;
                         }
 
                         if (NextNearPoint.NextNearPoint.NextNearPoint != null)

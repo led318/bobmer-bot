@@ -46,7 +46,7 @@ namespace Bomberman.Api
                 return $"*{nearPoint.Rating,2}*";
 
             if (nearPoint.IsMyFutureBlastToIgnore)
-                return $"-{nearPoint.Rating,2}-";
+                return $"^{nearPoint.Rating,2}^";
 
             return $" {nearPoint.Rating,2} ";
         }

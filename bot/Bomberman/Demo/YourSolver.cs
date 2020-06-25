@@ -221,8 +221,7 @@ namespace Demo
             {
                 if (Global.Me.HaveDirectAfkTargetCurrentStep)
                 {
-                    if (!Global.Me.HaveNextStep || 
-                        (Global.Me.NextStep.IsDangerForActThenMove && !Global.Me.NextStep.IsSafeForActThenMove))
+                    if (Global.Me.NextStepIsDangerForMove)
                     {
                         _actStrategy = ActStrategy.ActThenStop;
                         Console.WriteLine("ActThenStop, current step afk target, danger for move");
@@ -257,23 +256,62 @@ namespace Demo
 
                 if (Global.Me.HaveDestroyableWallsNear && !Global.Me.HaveDirectBonus())
                 {
-                    _actStrategy = ActStrategy.ActThenMove;
-                    Console.WriteLine("ActThenMove, have walls");
-                    return;
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, have walls, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, have walls");
+                        return;
+                    }
+
+                    //_actStrategy = ActStrategy.ActThenMove;
+                    //Console.WriteLine("ActThenMove, have walls");
+                    //return;
                 }
 
                 if (Global.Me.NearEnemies.Any() && !Global.Me.HaveDirectBonus())
                 {
-                    _actStrategy = ActStrategy.ActThenMove;
-                    Console.WriteLine("ActThenMove, have enemies");
-                    return;
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, have enemies, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, have enemies");
+                        return;
+                    }
+
+                    //_actStrategy = ActStrategy.ActThenMove;
+                    //Console.WriteLine("ActThenMove, have enemies");
+                    //return;
                 }
 
                 if (Global.Me.NearZombies.Any())
                 {
-                    _actStrategy = ActStrategy.ActThenMove;
-                    Console.WriteLine("ActThenMove, have zombies");
-                    return;
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, have zombies, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, have zombies");
+                        return;
+                    }
+
+                    //_actStrategy = ActStrategy.ActThenMove;
+                    //Console.WriteLine("ActThenMove, have zombies");
+                    //return;
                 }
             }
 

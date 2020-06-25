@@ -104,7 +104,11 @@ namespace Bomberman.Api
         }
 
         public bool HaveNextStep => NextStep != null;
-        #endregion 
+
+        public bool NextStepIsDangerForMove => !Global.Me.HaveNextStep
+                                               || (Global.Me.NextStep.IsDangerForActThenMove
+                                                   && !Global.Me.NextStep.IsSafeForActThenMove);
+        #endregion
 
         #region MyBombs
         public List<Bomb> MyBombs { get; private set; } = new List<Bomb>();
