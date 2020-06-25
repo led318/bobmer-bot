@@ -30,6 +30,11 @@ namespace Bomberman.Api
         public bool IsFutureBlastNextStep { get; set; }
         public bool IsMyFutureBlastToIgnore { get; set; }
 
+        public int WallsNearCount { get; set; }
+        public bool IsCrossRoad => WallsNearCount == 0;
+
+        public int MinPointBlastTicks => Global.Blasts.GetPointMinBlastTicks(Point);
+
         private int _bonusBombPower => Config.BombsDefaultPower + Config.BonusBlastIncrease;
         public bool IsBonusFutureBlastNextStep { get; set; }
         public bool IsBonusRCBlastNextStep { get; set; }
@@ -191,6 +196,9 @@ namespace Bomberman.Api
                 //    return true;
 
                 if (NearChopperPossibility > 60)
+                    return true;
+
+                if (!IsCrossRoad && MinPointBlastTicks == 1)
                     return true;
 
                 if (NextNearPoint != null)
@@ -437,6 +445,14 @@ namespace Bomberman.Api
                         {
                             result += Config.DangerRatingMedium;
                         }
+
+                        if (NextNearPoint.NextNearPoint.NextNearPoint != null)
+                        {
+                            if (Global.Me.IsOnBomb 
+                                && (!NextNearPoint.NextNearPoint.NextNearPoint.IsEmpty
+                                    || !NextNearPoint.NextNearPoint.NextNearPoint.IsSafeForActThenMove))
+                                result += Config.DangerRatingMedium;
+                        }
                     }
                 }
 
@@ -459,44 +475,19 @@ namespace Bomberman.Api
             Point = point.GetNewPosition(Direction);
             Element = Global.Board.GetAt(Point);
 
+            WallsNearCount = Global.Board.CountNear(Point, Element.WALL);
+
             IsFutureBlast = Global.Blasts.IsFutureBlast(Point);
             IsFutureBlastNextStep = Global.Blasts.IsFutureBlastNextStep(Point);
             IsBonusFutureBlastNextStep = Global.Blasts.IsBonusFutureBlastNextStep(Point);
             IsMyFutureBlastToIgnore = Global.Blasts.IsMyFutureBlastToIgnore(Point);
 
-            //IsFutureBlast = Global.Board.GetFutureBlasts().Any(b => b.Equals(Point));
-            //IsFutureBlastNextStep = Global.Board.GetFutureBlasts(true).Any(b => b.Equals(Point));
-            //IsBonusFutureBlastNextStep = Global.Board.GetFutureBlasts(true, _bonusBombPower).Any(b => b.Equals(Point));
-            /*
-            var rcBombs = Global.Board.Get(Element.BOMB_TIMER_5);
-            if (Global.HasPrevBoard)
-            {
-                var prevRCBombs = Global.PrevBoard.Get(Element.BOMB_TIMER_5);
-                var notPresentPrevRCBombs = prevRCBombs.Where(x => !rcBombs.Contains(x)).ToList();
-
-                foreach (var notPresentPrevRCBomb in notPresentPrevRCBombs)
-                {
-                    var currentElement = Global.Board.GetAt(notPresentPrevRCBomb);
-                    if (currentElement == Element.MEAT_CHOPPER)
-                    {
-                        rcBombs.Add(notPresentPrevRCBomb);
-                    }
-                }
-            }
-
-            rcBombs = rcBombs.Where(x => !Global.Me.MyRCBombs.GetPoints().Contains(x)).ToList();
-*/
-            //IsBonusRCBlastNextStep = Global.Board.GetFutureBlastsForBombs(rcBombs, _bonusBombPower).Any(b => b.Equals(Point));
             IsBonusRCBlastNextStep = Global.Blasts.IsBonusRCNextStep(Point);
 
-
             IsBomb = Global.Board.IsAnyOfAt(Point, Constants.BOMB_ELEMENTS) || IsBombChopper;
-            //IsNearChopper = Global.Board.IsNearChopper(Point);
             NearChopper = Global.Choppers.Get(Point);
 
             InitSidePoints();
-
-
 
             if (nestLevel < Config.NearNestLevel)
             {
@@ -536,20 +527,9 @@ namespace Bomberman.Api
             }
         }
 
-
-
-        /*
-        public void InitAct(bool isActCurrentMove)
-        {
-            IsActCurrentMove = isActCurrentMove;
-            if (NextNearPoint != null)
-                NextNearPoint.InitAct(isActCurrentMove);
-        }
-        */
-
         public override string ToString()
         {
-            return $"{Point} {Direction,5}";
+            return $"{Point} {Direction,5} {Rating,2}";
         }
     }
 }

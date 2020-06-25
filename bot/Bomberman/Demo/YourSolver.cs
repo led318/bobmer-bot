@@ -316,7 +316,7 @@ namespace Demo
                 return;
             }
 
-            var minRatingPoints = Global.NearPoints.GetMinRatingPoints();
+            var minRatingPoints = Global.NearPoints.GetMinRatingNonCriticalPoints();
             if (minRatingPoints.Count() > 1 && Global.OtherBombermans.Target != null)
                 minRatingPoints = Helper.GetNearest(Global.OtherBombermans.Target, minRatingPoints);
 

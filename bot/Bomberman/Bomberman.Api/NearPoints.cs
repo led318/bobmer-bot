@@ -20,24 +20,24 @@ namespace Bomberman.Api
         
         public bool OnlyCriticalDangerPoints => Points.All(x => x.IsCriticalDanger);
 
-        /*
-        public void InitActNearPoints(bool isActCurrentMove)
-        {
-            foreach (var nearPoint in Points)
-                nearPoint.InitAct(isActCurrentMove);
-        }
-        */
+        public List<NearPoint> NotCriticalPoints => Points.Where(x => !x.IsCriticalDanger).ToList();
 
-        public IEnumerable<NearPoint> GetMinRatingPoints()
+        public IEnumerable<NearPoint> GetMinRatingNonCriticalPoints()
         {
-            var minRating = Points.Min(x => x.Rating);
-            return Points.Where(x => x.Rating == minRating).ToList();
+            //var minRating1 = Points.Min(x => x.Rating);
+            //return Points.Where(x => x.Rating == minRating1).ToList();
+
+            if (OnlyCriticalDangerPoints)
+                return new List<NearPoint>();
+
+            var minRating = NotCriticalPoints.Min(x => x.Rating);
+            return NotCriticalPoints.Where(x => x.Rating == minRating).ToList();
         }
 
         public void Init()
         {
             foreach (var nearPoint in Points)
-                nearPoint.Init(Infrastructure.Global.Me.Point);
+                nearPoint.Init(Global.Me.Point);
         }
 
         private string RatingStr(NearPoint nearPoint)

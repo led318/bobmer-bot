@@ -42,7 +42,7 @@
 
         public static readonly Element[] BONUS_ELEMENTS = new[] {
             Element.BOMB_BLAST_RADIUS_INCREASE,
-            //Element.BOMB_COUNT_INCREASE,
+            Element.BOMB_COUNT_INCREASE,
             Element.BOMB_IMMUNE,
             Element.BOMB_REMOTE_CONTROL
         };
