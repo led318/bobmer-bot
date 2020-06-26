@@ -207,7 +207,7 @@ namespace Bomberman.Api
                         return true;
 
                     // avoid dead-ends
-                    if (!IsCrossRoad && MinPointBlastTicks == 1 && !NextNearPoint.IsEmpty)
+                    if (!IsCrossRoad && MinPointBlastTicks == 1 && (!NextNearPoint.IsEmpty || NextNearPoint.IsFutureBlast))
                         return true;
                 }
 
