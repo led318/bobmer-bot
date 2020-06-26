@@ -15,6 +15,11 @@
             //Element.BOOM
         };
 
+        public static readonly Element[] ZOMBI_ELEMENTS = new[] {
+            Element.DeadMeatChopper,
+            Element.DestroyedWall
+        };
+
         public static readonly Element[] ENEMIES_ELEMENTS = new[] {
             Element.OTHER_BOMBERMAN,
             Element.OTHER_BOMB_BOMBERMAN,

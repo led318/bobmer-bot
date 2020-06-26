@@ -23,6 +23,8 @@ namespace Bomberman.Api
 {
     public enum Element : short
     {
+        DUMMY = (short)'!',
+
         /// <summary>
         /// This is your Bomberman. This is what he usually looks like :)
         /// </summary>

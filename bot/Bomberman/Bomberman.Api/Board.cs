@@ -62,7 +62,7 @@ namespace Bomberman.Api
         {
             return Get(Element.OTHER_BOMBERMAN)
                 .Concat(Get(Element.OTHER_BOMB_BOMBERMAN))
-                .Concat(Get(Element.OTHER_DEAD_BOMBERMAN))
+                //.Concat(Get(Element.OTHER_DEAD_BOMBERMAN))
                 .OrderBy(a => a.X)
                 .ThenBy(a => a.Y)
                 .ToList();
@@ -93,6 +93,16 @@ namespace Bomberman.Api
             }
 
             return GetAt(point) == element;
+        }
+
+        public bool IsAt(Point point, IEnumerable<Element> elements)
+        {
+            if (point.IsOutOf(Size))
+            {
+                return false;
+            }
+
+            return elements.Contains(GetAt(point));
         }
 
         public string BoardAsString()
@@ -199,15 +209,15 @@ namespace Bomberman.Api
             return result;
         }
 
-        public List<Point> Get(Point point, int size, params Element[] elements)
+        public List<Point> Get(Point startPoint, int size, params Element[] elements)
         {
-            var topLeft = point.ShiftLeft(size).ShiftTop(size);
-            var bottomRight = point.ShiftRight(size).ShiftBottom(size);
+            var topLeft = startPoint.ShiftLeft(size).ShiftTop(size);
+            var bottomRight = startPoint.ShiftRight(size).ShiftBottom(size);
 
-            return Get(topLeft, bottomRight, elements);
+            return Get(startPoint, size, topLeft, bottomRight, elements);
         }
 
-        public List<Point> Get(Point topLeft, Point bottomRight, params Element[] elements)
+        public List<Point> Get(Point startPoint, int size, Point topLeft, Point bottomRight, params Element[] elements)
         {
             List<Point> result = new List<Point>();
 
@@ -219,8 +229,15 @@ namespace Bomberman.Api
             }
 
             result = result.Where(a => a.X >= topLeft.X && a.Y <= topLeft.Y).ToList();
-
             result = result.Where(a => a.X <= bottomRight.X && a.Y >= bottomRight.Y).ToList();
+
+            result = result.Where(a =>
+            {
+                var deltaX = Math.Abs(startPoint.X - a.X);
+                var deltaY = Math.Abs(startPoint.Y - a.Y);
+
+                return deltaX != size && deltaY != size;
+            }).ToList();
 
             return result
                 .OrderBy(a => a.X)
@@ -260,6 +277,25 @@ namespace Bomberman.Api
                     .ToList();
             }
 
+            if (Global.HasPrevBoard)
+            {
+                var meatChoppers = Get(Element.MEAT_CHOPPER);
+                var bombMeatChoppers = new List<Point>();
+
+                if (onlyNextStep)
+                {
+                    bombMeatChoppers = meatChoppers
+                        .Where(x => Global.PrevBoard.IsAt(x, Element.BOMB_TIMER_2)).ToList();
+                }
+                else
+                {
+                    bombMeatChoppers = meatChoppers
+                        .Where(x => Global.PrevBoard.IsAnyOfAt(x, Constants.BOMB_ELEMENTS)).ToList();
+                }
+
+                result.AddRange(bombMeatChoppers);
+            }
+
             return result
                 .OrderBy(a => a.X)
                 .ThenBy(a => a.Y)
@@ -290,29 +326,29 @@ namespace Bomberman.Api
             return GetFutureBlasts().Any(b => b.Equals(point));
         }
 
-        public List<Point> GetFutureBlasts(bool onlyNextStep = false)
+        public List<Point> GetFutureBlasts(bool onlyNextStep = false, int? bombPower = null)
         {
             var points = GetBombs(onlyNextStep);
 
-            return GetFutureBlastsForBombs(points, onlyNextStep);
+            return GetFutureBlastsForBombs(points, bombPower);
         }
 
-        public List<Point> GetFutureBlastsForBombs(Bomb bomb, bool onlyNextStep = false)
+        public List<Point> GetFutureBlastsForBombs(Bomb bomb, int? bombPower = null)
         {
-            return GetFutureBlastsForBombs(new List<Bomb> { bomb }, onlyNextStep);
+            return GetFutureBlastsForBombs(new List<Bomb> { bomb }, bombPower);
         }
 
-        public List<Point> GetFutureBlastsForBombs(Point point, bool onlyNextStep = false)
+        public List<Point> GetFutureBlastsForBombs(Point point, int? bombPower = null)
         {
-            return GetFutureBlastsForBombs(new List<Bomb> { new Bomb(point) }, onlyNextStep);
+            return GetFutureBlastsForBombs(new List<Bomb> { new Bomb(point) }, bombPower);
         }
 
-        public List<Point> GetFutureBlastsForBombs(List<Point> points, bool onlyNextStep = false) 
+        public List<Point> GetFutureBlastsForBombs(List<Point> points, int? bombPower = null) 
         {
-            return GetFutureBlastsForBombs(points.Select(p => new Bomb(p)).ToList(), onlyNextStep);
+            return GetFutureBlastsForBombs(points.Select(p => new Bomb(p)).ToList(), bombPower);
         }
 
-        public List<Point> GetFutureBlastsForBombs(List<Bomb> bombs, bool onlyNextStep = false)
+        public List<Point> GetFutureBlastsForBombs(List<Bomb> bombs, int? bombPower = null)
         {
             var result = new List<Point>();
             foreach (var bomb in bombs)
@@ -321,26 +357,26 @@ namespace Bomberman.Api
 
                 //var currentBombBlastSize = Global.Me.MyBombs.GetPoints().Contains(bomb) ? Global.Me.MyBombsPower : blastSize;
                 //var currentBombBlastSize = Global.Me.MyBombs.GetPoints().Contains(bomb.Point) ? bomb.Power : blastSize;
-                CalculateFutureBlasts(result, bomb, b => b.ShiftTop());
-                CalculateFutureBlasts(result, bomb, b => b.ShiftRight());
-                CalculateFutureBlasts(result, bomb, b => b.ShiftBottom());
-                CalculateFutureBlasts(result, bomb, b => b.ShiftLeft());
+                CalculateFutureBlasts(result, bomb, b => b.ShiftTop(), bombPower);
+                CalculateFutureBlasts(result, bomb, b => b.ShiftRight(), bombPower);
+                CalculateFutureBlasts(result, bomb, b => b.ShiftBottom(), bombPower);
+                CalculateFutureBlasts(result, bomb, b => b.ShiftLeft(), bombPower);
             }
 
-            return result.Where(blast => !blast.IsOutOf(Size) && !GetWalls().Contains(blast)).Distinct()
+            return result.Where(blast => !blast.IsOutOf(Size) && !GetWalls().Contains(blast))
                 .OrderBy(a => a.X)
                 .ThenBy(a => a.Y)
                 .ToList();
         }
 
-        private void CalculateFutureBlasts(List<Point> result, Bomb bomb, Func<Point, Point> func)
+        private void CalculateFutureBlasts(List<Point> result, Bomb bomb, Func<Point, Point> func, int? bombPower = null)
         {
             var newBlast = func(bomb.Point);
             if (IsAnyOfAt(newBlast, Element.WALL, Element.DESTROYABLE_WALL))
                 return;
 
             result.Add(newBlast);
-            for (var i = 0; i < bomb.Power - 1; i++)
+            for (var i = 0; i < (bombPower ?? bomb.Power - 1); i++)
             {
                 newBlast = func(newBlast);
                 if (IsAnyOfAt(newBlast, Element.WALL, Element.DESTROYABLE_WALL))
@@ -381,6 +417,19 @@ namespace Bomberman.Api
             if (IsAt(point.ShiftRight(), element)) count++;
             if (IsAt(point.ShiftTop(), element)) count++;
             if (IsAt(point.ShiftBottom(), element)) count++;
+            return count;
+        }
+
+        public int CountNear(Point point, IEnumerable<Element> elements)
+        {
+            if (point.IsOutOf(Size))
+                return 0;
+
+            int count = 0;
+            if (IsAt(point.ShiftLeft(), elements)) count++;
+            if (IsAt(point.ShiftRight(), elements)) count++;
+            if (IsAt(point.ShiftTop(), elements)) count++;
+            if (IsAt(point.ShiftBottom(), elements)) count++;
             return count;
         }
     }

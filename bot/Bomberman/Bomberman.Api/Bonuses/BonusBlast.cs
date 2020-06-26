@@ -10,6 +10,7 @@ namespace Bomberman.Api
     public class BonusBlast : BonusByTick
     {
         public override bool IsDisabled => TicksLeft < Config.BonusBlastDisableTimeout;
+        public override bool AreTicksConcatenated => true;
 
         public BonusBlast()
         {

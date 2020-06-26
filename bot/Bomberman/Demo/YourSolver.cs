@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Newtonsoft.Json;
 using Bomberman.Api.Infrastructure;
 
@@ -40,6 +41,8 @@ namespace Demo
             Global.Me = new MyBomberman();
             Global.NearPoints = new NearPoints();
             Global.OtherBombermans = new OtherBombermans();
+            Global.Choppers = new Choppers();
+            Global.Blasts = new Blasts();
         }
 
         private string _logPath = $"C:/temp/bomberman/log_{DateTime.Now.ToShortDateString().Replace('/', '_')}-{DateTime.Now.ToShortTimeString().Replace(':', '_')}.txt";
@@ -49,7 +52,8 @@ namespace Demo
 
         private Direction _currentDirection = Direction.Up;
         private List<Direction> _currentMoves = new List<Direction>();
-        private bool _isActCurrentMove;
+        private ActStrategy? _actStrategy = null;
+        private bool _threadSleepOnAct = false;
 
         /// <summary>
         /// Calls each move to make decision what to do (next move)
@@ -59,16 +63,45 @@ namespace Demo
             var sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             Process(board);
+            Global.RoundTickIndex++;
             sw.Stop();
             Console.WriteLine($"elapsed: {sw.ElapsedMilliseconds}ms");
 
             return string.Join(",", _currentMoves);
         }
 
+        private Direction GetManualMove()
+        {
+            switch (Global.ManualMove)
+            {
+                case "w":
+                    return Direction.Up;
+                case "d":
+                    return Direction.Right;
+                case "s":
+                    return Direction.Down;
+                case "a":
+                    return Direction.Left;
+                case "f":
+                    return Direction.Act;
+            }
+
+            return Direction.Stop;
+        }
+
         private void Process(Board board)
         {
+            Console.WriteLine($"tick index: {Global.RoundTickIndex}");
+
             _currentMoves.Clear();
+            Global.PrevBoard = Global.Board;
             Global.Board = board;
+
+            if (Global.HasManualMove)
+            {
+                Console.WriteLine($"manual move: '{Global.ManualMove}'");
+                _currentMoves.Add(GetManualMove());
+            }
 
             if (Global.Board.isMyBombermanDead)
             {
@@ -76,13 +109,18 @@ namespace Demo
                 _currentMoves.Add(Direction.Stop);
                 Global.OtherBombermans.Clear();
                 Config.ManualSuicide = false;
+
+                Global.RoundTickIndex = 0;
             }
             else
             {
                 Global.Me.Tick();
                 Global.Me.Point = Global.Board.GetBomberman();
+                Global.Me.Element = Global.Board.GetAt(Global.Me.Point);
 
-                if (Global.OtherBombermans.InitAndCheckSuicide())
+                Global.Choppers.Init();
+
+                if (Global.OtherBombermans.InitAndCheckSuicide() && !Global.HasManualMove)
                 {
                     _currentMoves.Add(Direction.Stop);
                     _currentMoves.Add(Direction.Act);
@@ -90,37 +128,81 @@ namespace Demo
                 }
 
                 Global.Me.InitNearEnemies();
-                Global.Me.CheckMyBombs();
+                Global.Me.InitMyBombs();
+                Global.Blasts.Init();
+                Global.Me.InitMyBlasts();
+                //Console.WriteLine("next step blasts: " + Global.Blasts.AllBlasts.Where(x => x.IsNextStep).Count());
+
                 Global.NearPoints.Init();
                 Global.Me.PrintStatus();
 
-                CalculateActCurrentMove();
+
 
                 Console.WriteLine(Global.NearPoints.GetPrintStr());
-
                 CalculateAvailableDirection();
-                CheckUseRC();
 
-                if (_isActCurrentMove)
+                CalculateActStrategy();
+
+                if (!Global.HasManualMove)
                 {
-                    if (!Global.Me.NearEnemies.Any() && Global.Me.HaveMoreDestroyableWallsNextStep)
-                    {
-                        Console.WriteLine("skip act current move, next move more walls");
-                    }
-                    else if (!Global.Me.NearMeatChoppers.Any() && Global.Me.HaveDirectAfkTargetNextStep && !Global.Me.HaveDirectAfkTargetCurrentStep)
-                    {
-                        Console.WriteLine("skip act current move, next move afk target");
-                    }
-                    else
-                    {
-                        _currentMoves.Add(Direction.Act);
-                        Global.Me.SetMyBomb();
-                        Console.WriteLine("ACT CURRENT MOVE!!!!!!");
-                    }
+                    ProcessActStrategy();
                 }
-
-                _currentMoves.Add(_currentDirection);
             }
+
+            if (Global.HasManualMove)
+            {
+                Global.ManualMove = string.Empty;
+            }
+        }
+
+
+        private void ProcessActStrategy()
+        {
+            switch (_actStrategy)
+            {
+                case ActStrategy.ActThenMove:
+                    Global.Me.SetMyBomb();
+                    _currentMoves.Add(Direction.Act);
+                    _currentMoves.Add(_currentDirection);
+                    ThreadSleep();
+                    break;
+
+                case ActStrategy.RCThenMove:
+                    _currentMoves.Add(Direction.Act);
+                    _currentMoves.Add(_currentDirection);
+                    ThreadSleep();
+                    break;
+
+                case ActStrategy.MoveThenAct:
+                    Global.Me.SetMyBombNextStep();
+                    _currentMoves.Add(_currentDirection);
+                    _currentMoves.Add(Direction.Act);
+                    ThreadSleep();
+                    break;
+
+                case ActStrategy.MoveThenRC:
+                    _currentMoves.Add(_currentDirection);
+                    _currentMoves.Add(Direction.Act);
+                    ThreadSleep();
+                    break;
+
+                case ActStrategy.ActThenStop:
+                    _currentMoves.Add(Direction.Act);
+                    _currentMoves.Add(Direction.Stop);
+                    ThreadSleep();
+                    break;
+
+                default:
+                    _currentMoves.Add(_currentDirection);
+                    break;
+            }
+        }
+
+        private void ThreadSleep()
+        {
+            Console.WriteLine(string.Join(",", _currentMoves.Select(x => x.ToString())));
+            if (_threadSleepOnAct)
+                Thread.Sleep(5000);
         }
 
         private void WriteToLog(string str)
@@ -131,47 +213,144 @@ namespace Demo
             }
         }
 
-        private void CheckUseRC()
+        private void CalculateActStrategy()
         {
-            if (!_isActCurrentMove && Global.Me.CanUseRC)
+            _actStrategy = null;
+
+            if (Global.Me.CanPlaceBombs && !Global.Me.IsMyBombRC)
             {
-                Global.Me.UseRC();
-                ActCurrentMove();
-            }
-        }
-
-        private void CalculateActCurrentMove()
-        {
-            _isActCurrentMove = false;
-
-
-            if (Global.Me.CanPlaceBombs)
-            {
-                if (Global.Me.NearEnemies.Any() || Global.Me.HaveDestroyableWallsNear)
+                if (Global.Me.HaveDirectAfkTargetCurrentStep)
                 {
-                    ActCurrentMove();
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, current step afk target, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, current step afk target");
+                        return;
+                    }
+                }
+
+               // if (Global.Me.HaveDirectAfkTargetNextStep && Global.Me.HaveNextStep && !Global.Me.NextStep.IsDangerForActThenMove)
+                if (Global.Me.HaveDirectAfkTargetNextStep)
+                {
+                    _actStrategy = ActStrategy.MoveThenAct;
+                    Console.WriteLine("MoveThenAct, next step afk target");
+                    return;
+                }
+
+                //if (Global.Me.HaveNextStep && Global.Me.NextStep.HaveMoreDestroyableWalls && !Global.Me.NextStep.IsDangerForActThenMove && !Global.Me.HaveDirectBonusNextStep())
+                if (Global.Me.HaveNextStep 
+                    && Global.Me.NextStep.HaveMoreDestroyableWalls
+                    && !Global.Me.HaveDirectBonusNextStep()
+                    && !Global.Me.NextStepIsDangerForMove)
+                {
+                    _actStrategy = ActStrategy.MoveThenAct;
+                    Console.WriteLine("MoveThenAct, next step more walls");
+                    return;
+                }
+
+                if (Global.Me.HaveDestroyableWallsNear && !Global.Me.HaveDirectBonus())
+                {
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, have walls, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, have walls");
+                        return;
+                    }
+
+                    //_actStrategy = ActStrategy.ActThenMove;
+                    //Console.WriteLine("ActThenMove, have walls");
+                    //return;
+                }
+
+                if (Global.Me.NearEnemies.Any() && !Global.Me.HaveDirectBonus())
+                {
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, have enemies, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, have enemies");
+                        return;
+                    }
+
+                    //_actStrategy = ActStrategy.ActThenMove;
+                    //Console.WriteLine("ActThenMove, have enemies");
+                    //return;
+                }
+
+                if (Global.Me.NearZombies.Any())
+                {
+                    if (Global.Me.NextStepIsDangerForMove)
+                    {
+                        _actStrategy = ActStrategy.ActThenStop;
+                        Console.WriteLine("ActThenStop, have zombies, danger for move");
+                        return;
+                    }
+                    else
+                    {
+                        _actStrategy = ActStrategy.ActThenMove;
+                        Console.WriteLine("ActThenMove, have zombies");
+                        return;
+                    }
+
+                    //_actStrategy = ActStrategy.ActThenMove;
+                    //Console.WriteLine("ActThenMove, have zombies");
+                    //return;
                 }
             }
 
-            Global.NearPoints.InitActNearPoints(_isActCurrentMove);
-        }
+            if (Global.Me.IsMyBombRC)
+            {
+                if (Global.Me.IsBonusImmune)
+                {
+                    _actStrategy = ActStrategy.RCThenMove;
+                    Console.WriteLine("RCThenMove, have immune");
+                    return;
+                }
 
-        private void ActCurrentMove()
-        {
-            _isActCurrentMove = true;
+                if (!Global.Me.IsOnMyRC)
+                {
+                    _actStrategy = ActStrategy.RCThenMove;
+                    Console.WriteLine("RCThenMove, is not on my rc");
+                    return;
+                }
+
+                if (!Global.Me.IsOnMyRCNextStep)
+                {
+                    _actStrategy = ActStrategy.MoveThenRC;
+                    Console.WriteLine("MoveThenRC, is not on my rc next move");
+                    return;
+                }
+            }
         }
 
         private void CalculateAvailableDirection()
         {
-            if (Global.NearPoints.OnlyDangerPoints)
+            if (Global.NearPoints.OnlyCriticalDangerPoints)
             {
                 SetCurrentDirection();
-                WriteStopLog();
+                //WriteStopLog();
 
                 return;
             }
 
-            var minRatingPoints = Global.NearPoints.GetMinRatingPoints();
+            var minRatingPoints = Global.NearPoints.GetMinRatingNonCriticalPoints();
             if (minRatingPoints.Count() > 1 && Global.OtherBombermans.Target != null)
                 minRatingPoints = Helper.GetNearest(Global.OtherBombermans.Target, minRatingPoints);
 
@@ -189,9 +368,10 @@ namespace Demo
         private void SetCurrentDirection(NearPoint nearPoint = null)
         {
             _currentDirection = nearPoint?.Direction ?? Direction.Stop;
-            Global.Me.PreviousMove = nearPoint;
+            Global.Me.NextStep = nearPoint;
         }
 
+        /*
         private void WriteStopLog()
         {
             try
@@ -226,5 +406,6 @@ namespace Demo
                 Console.WriteLine("something wrong with stop log: " + ex.Message);
             }
         }
+        */
     }
 }

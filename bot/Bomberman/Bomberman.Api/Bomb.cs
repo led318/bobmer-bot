@@ -13,7 +13,21 @@ namespace Bomberman.Api
         public Element Element { get; set; }
         public int Power { get; set; }
 
-        public bool IsRc => Element == Constants.RC_BOMB_ELEMENT;
+        public bool IsRc
+        {
+            get
+            {
+                var result = Element == Constants.RC_BOMB_ELEMENT;
+
+                if (!result && Global.HasPrevBoard)
+                {
+                    result = Global.PrevBoard.IsAnyOfAt(Point, Constants.RC_BOMB_ELEMENT);
+                }
+
+                return result;
+            }
+        }
+
         public bool IsNew => Element == Element.BOMB_BOMBERMAN;
 
         public Bomb(Point point, bool isMyBomb = false)
@@ -25,7 +39,8 @@ namespace Bomberman.Api
 
         public void Init()
         {
-            Element = Global.Board.GetAt(Point);
+            if (Global.Board != null)
+                Element = Global.Board.GetAt(Point);
         }
     }
 }

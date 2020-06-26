@@ -10,5 +10,6 @@ namespace Bomberman.Api
     {
         public Point Point { get; set; }
         public int AfkPoints { get; set; } = 0;
+        public bool IsProcessed { get; set; }
     }
 }

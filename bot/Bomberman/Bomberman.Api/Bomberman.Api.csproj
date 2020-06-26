@@ -53,16 +53,22 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Blast.cs" />
+    <Compile Include="Blasts.cs" />
+    <Compile Include="BoardPoint.cs" />
     <Compile Include="Bomb.cs" />
     <Compile Include="Bonuses\Bonus.cs" />
     <Compile Include="Bonuses\BonusBlast.cs" />
     <Compile Include="Bonuses\BonusCount.cs" />
     <Compile Include="Bonuses\BonusImmune.cs" />
     <Compile Include="Bonuses\BonusRC.cs" />
+    <Compile Include="Chopper.cs" />
+    <Compile Include="Choppers.cs" />
     <Compile Include="Infrastructure\AutoPopulateConfigAttribute.cs" />
     <Compile Include="Infrastructure\Config.cs" />
     <Compile Include="Infrastructure\Constants.cs" />
     <Compile Include="Element.cs" />
+    <Compile Include="Infrastructure\Enums.cs" />
     <Compile Include="Infrastructure\Extensions.cs" />
     <Compile Include="Infrastructure\Global.cs" />
     <Compile Include="Infrastructure\Helper.cs" />
